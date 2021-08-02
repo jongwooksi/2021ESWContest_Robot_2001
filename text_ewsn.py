@@ -13,15 +13,19 @@ def textImageProcessing(img, frame):
 
     img = cv2.Canny(img, 15, 40)
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+    #cv2.imshow("dd", img)
+    #key = cv2.waitKey(1)
+    
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
 
-    img = cv2.dilate(img, kernel, iterations=2)
+    img = cv2.dilate(img, kernel, iterations=1)
 
     img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+    
     img = cv2.erode(img, kernel)
-
-    cv2.imshow("daa", img)
-    key = cv2.waitKey(1)
+    
+    #cv2.imshow("daa", img)
+    #key = cv2.waitKey(1)
 
     contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -32,8 +36,7 @@ def textImageProcessing(img, frame):
         approx = cv2.approxPolyDP(c, 0.01 * cv2.arcLength(c, True), True)
 
 
-        if area > 1000:
-            #cv2.drawContours(frame, [approx], 0, (0, 0, 255), 5)
+        if area > 2000:
             if len(approx) == 4:
                 cv2.drawContours(frame, [approx], 0, (0, 0, 255), 5)
                 #cv2.imshow("d", frame)
@@ -48,7 +51,7 @@ def textImageProcessing(img, frame):
                 distance_top = ((x - top[0])**2 + (y - top[1]) ** 2) ** 0.5
 
                 distance_bottom = (((x+w) - bottom[0]) ** 2 + ((y+h) - bottom[1]) ** 2) ** 0.5
-
+                
                 return [[x, y], [x + w, y], [x, y + h], [x + w, y + h]], frame
                 '''
                 if distance_top < w * 0.1 or distance_top > w * 0.9:
@@ -68,60 +71,61 @@ def textImageProcessing(img, frame):
                     return [top, right, left, bottom], frame
                 '''
 
-
     return [[-1,-1], [-1,-1], [-1,-1], [-1,-1]], frame
 
 def textRecog(textimage):
     textimage = cv2.cvtColor(textimage, cv2.COLOR_BGR2GRAY)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+    textimage = cv2.dilate(textimage, kernel)
     
-    result = np.zeros((128, 128), np.uint8) + 255
+    result = np.zeros((64, 128), np.uint8) + 255
     result[5:59, 5:59] = textimage
     result[5:59, 59:113] = textimage
-
-    cv2.imshow("canny", result)
-    cv2.waitKey(1)
+    
+    
+    #cv2.imshow("aa", result)
+    #key = cv2.waitKey(1)
 
     text_image = pytesseract.image_to_string(result)
-    print("text "+text_image)
     text_image.replace(" ","")
     text_image.rstrip() 
     text_image = text_image[0:2]
     
-    if text_image == "AA":
-        text = "A"
-    elif text_image == "BB":
-        text = "B"
-    elif text_image == "CC":
-        text = "C"
-    elif text_image == "DD":
-        text = "D"
+    if text_image == "EE":
+        text = "E"
+    elif text_image == "WW":
+        text = "W"
+    elif text_image == "SS":
+        text = "S"
+    elif text_image == "NN":
+        text = "N"
     else :
         text = "error"
 
     if text == "error":
-        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
         textimage = cv2.dilate(textimage, kernel)
 
-        result = np.zeros((128, 128), np.uint8) + 255
+        result = np.zeros((64, 128), np.uint8) + 255
         result[5:59, 5:59] = textimage
         result[5:59, 59:113] = textimage
 
-        cv2.imshow("canny", result)
-        cv2.waitKey(1)
+        #cv2.imshow("canny", result)
+        #ey = cv2.waitKey(1)
 
         text_image = pytesseract.image_to_string(result, lang='eng')
         text_image.replace(" ","")
         text_image.rstrip() 
         text_image = text_image[0:2]
         
-        if text_image == "AA":
-            text = "A"
-        elif text_image == "BB":
-            text = "B"
-        elif text_image == "CC":
-            text = "C"
-        elif text_image == "DD":
-            text = "D"
+        if text_image == "EE":
+            text = "E"
+        elif text_image == "WW":
+            text = "W"
+        elif text_image == "SS":
+            text = "S"
+        elif text_image == "NN":
+            text = "N"
         else:
             text = "error"
 
@@ -129,26 +133,26 @@ def textRecog(textimage):
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
         textimage = cv2.erode(textimage, kernel)
 
-        result = np.zeros((128, 128), np.uint8) + 255
+        result = np.zeros((64, 128), np.uint8) + 255
         result[5:59, 5:59] = textimage
         result[5:59, 59:113] = textimage
 
-        cv2.imshow("canny", result)
-        cv2.waitKey(1)
+        #cv2.imshow("canny", result)
+        #key = cv2.waitKey(1)
 
         text_image = pytesseract.image_to_string(result, lang='eng')
         text_image.replace(" ","")
         text_image.rstrip() 
         text_image = text_image[0:2]
         
-        if text_image == "AA":
-            text = "A"
-        elif text_image == "BB":
-            text = "B"
-        elif text_image == "CC":
-            text = "C"
-        elif text_image == "DD":
-            text = "D"
+        if text_image == "EE":
+            text = "E"
+        elif text_image == "WW":
+            text = "W"
+        elif text_image == "SS":
+            text = "S"
+        elif text_image == "NN":
+            text = "N"
         else:
             text = "error"
 
@@ -156,78 +160,39 @@ def textRecog(textimage):
 
 def Recog(textimage, img_color):
     img_hsv = cv2.cvtColor(img_color, cv2.COLOR_BGR2HSV)
-    cv2.imshow('ss',img_hsv)
-    cv2.waitKey(1)
-    lower_red = np.array([0, 30, 40])
-    upper_red = np.array([20, 255, 255])
-    mask0 = cv2.inRange(img_hsv, lower_red, upper_red)
 
-    lower_red = np.array([160, 30, 40])
-    upper_red = np.array([180, 255, 255])
-    mask1 = cv2.inRange(img_hsv, lower_red, upper_red)
+   
+    lower = np.array([0, 0, 0])
+    upper = np.array([180, 255, 50])
+    mask = cv2.inRange(img_hsv, lower, upper)
 
-    red_mask = mask0 + mask1
-
-    lower_blue = np.array([100, 50, 50])
-    upper_blue = np.array([140, 255, 255])
-    blue_mask = cv2.inRange(img_hsv, lower_blue, upper_blue)
-
-    red_hsv = img_hsv.copy()
-    blue_hsv = img_hsv.copy()
-    
-    #cv2.imshow('sss',red_hsv)
-    #cv2.waitKey(1)
-    
-    red_count = len(red_hsv[np.where(red_mask != 0)])
-    blue_count = len(blue_hsv[np.where(blue_mask != 0)])
-
-    if red_count > blue_count:
-        color = "red"
-        red_hsv[np.where(red_mask != 0)] = 0
-        red_hsv[np.where(red_mask == 0)] = 255
-        text = textRecog(red_hsv)
-
-    else:
-        color = "blue"
-        blue_hsv[np.where(blue_mask != 0)] = 0
-        blue_hsv[np.where(blue_mask == 0)] = 255
-        text = textRecog(blue_hsv)
+    hsv = img_hsv.copy()
 
 
-    return text, color
+    hsv[np.where(mask != 0)] = 0
+    hsv[np.where(mask == 0)] = 255
+    text = textRecog(hsv)
+
+
+    return text
 
 def loop(serial_port):
     W_View_size = 320
     H_View_size = int(W_View_size / 1.333)
 
-    FPS         = 90  #PI CAMERA: 320 x 240 = MAX 90
+    FPS         = 5  #PI CAMERA: 320 x 240 = MAX 90
 
 
+    TX_data_py2(serial_port, 54)
     
-    
-
     cap = cv2.VideoCapture(0)
 
     cap.set(3, W_View_size)
     cap.set(4, H_View_size)
     cap.set(5, FPS)  
     
-    
-    TX_data_py2(serial_port, 43)
-    #TX_data_py2(serial_port, 54)
-    
-    time.sleep(1)
-    
-    f = open("./data/area.txt","r")
-    
-    area = f.readline()
-    f.close()
-    
-    
-    
-    f2 = open("./data/result.txt","w")
-    f3 = open("./data/color.txt","w")
-    
+    f = open("./data/start.txt","w")
+
     while True:
         wait_receiving_exit()
         _,frame = cap.read()
@@ -254,58 +219,42 @@ def loop(serial_port):
         matrix = cv2.getPerspectiveTransform(pts1, pts2)
         textimage = cv2.warpPerspective(dst, matrix, (128, 128))
 
-        textimage = textimage[12:110, 12:110]
+        textimage = textimage[8:110, 8:110]
         textimage = cv2.resize(textimage, (54, 54))
 
-        
+
         img_color =  cv2.warpPerspective(frame, matrix, (128, 128))
-        img_color = img_color[12:110, 12:110]
+        img_color = img_color[8:110, 8:110]
         img_color = cv2.resize(img_color, (54, 54))
 
-        text, color = Recog(textimage, img_color)
+        text = Recog(textimage, img_color)
 
-        print("text : {} \ncolor : {}".format(text, color))
-        if text == "A":
-            f3.write(color)
-            if area == "dangerous":
-                f2.write(text)
-            TX_data_py2(serial_port, 19)
+        print("text : {} ".format(text))
+        if text == "E":
+            f.write(text)
             break
-        elif text == "B":
-            f3.write(color)
-            if area == "dangerous":
-                f2.write(text)
-            TX_data_py2(serial_port, 19)
+        elif text == "W":
+            f.write(text)
             break
-        elif text == "C":
-            f3.write(color)
-            if area == "dangerous":
-                f2.write(text)
-            TX_data_py2(serial_port, 19)
+        elif text == "S":
+            f.write(text)
             break
-        elif text == "D":
-            f3.write(color)
-            if area == "dangerous":
-                f2.write(text)
-            TX_data_py2(serial_port, 19)
+        elif text == "N":
+            f.write(text)
             break
-        
         
     
-            
+    
         
-
-
 
     cap.release()
     cv2.destroyAllWindows()
-    f.close()
-    f2.close()
-    f3.close()
+    TX_data_py2(serial_port, 26)
     time.sleep(1)
+    print('recog')
     exit(1)
-   
-   
+    
+    
 if __name__ == '__main__':
 
     BPS =  4800  # 4800,9600,14400, 19200,28800, 57600, 115200
@@ -326,13 +275,13 @@ if __name__ == '__main__':
     serial_t.start()
     serial_d.start()
     
-    #serial_t.join()
+   
     serial_d.join()
     print("end")
+         
     
-        
-    
-    
+   
+  
 
 
 
