@@ -20,10 +20,10 @@ def loop(serial_port):
     
     left_count = 0
     right_count = 0
-    TX_data_py2(serial_port, 54)
     
     time.sleep(1)
-    #TX_data_py2(serial_port, 43)
+    TX_data_py2(serial_port, 43)
+    TX_data_py2(serial_port, 54)
     
     while True:
         wait_receiving_exit()
@@ -91,7 +91,7 @@ def loop(serial_port):
        
        
     
-
+    TX_data_py2(serial_port, 43)
     f.close()
     cap.release()
     cv2.destroyAllWindows() 

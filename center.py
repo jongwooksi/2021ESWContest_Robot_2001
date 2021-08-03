@@ -77,13 +77,13 @@ def draw_lines(img, lines, color=[0, 0, 255], thickness=3):
     cv2.line(img, (point[0], point[1]), (point[2], point[3]), color, thickness)
             
     return x, y, gradient
-
-def loop(serial_port):
+    
+def loop(serial_port) :
     
     W_View_size = 320
     H_View_size = int(W_View_size / 1.333)
 
-    FPS         = 10  #PI CAMERA: 320 x 240 = MAX 90
+    FPS         = 1  #PI CAMERA: 320 x 240 = MAX 90
 
 
     cap = cv2.VideoCapture(0)
@@ -94,10 +94,9 @@ def loop(serial_port):
     
 
     TX_data_py2(serial_port, 29)
-    
+	
     while True:
         wait_receiving_exit()
-        
         _,frame = cap.read()
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
@@ -116,32 +115,7 @@ def loop(serial_port):
         result = weighted_img(hough_img, frame)
         
         #print(gradient)
-        #TX_data_py2(serial_port, 48)
         
-        if get_distance() >= 2:
-            
-            f = open("start.txt", 'r')
-            text = f.readline()
-            print(text)
-            
-            if text == "E":
-                TX_data_py2(serial_port, 33)
-                
-            elif text == "W":
-                TX_data_py2(serial_port, 34)
-                
-            elif text == "S":
-                TX_data_py2(serial_port, 35)
-                
-            elif text == "N":
-                TX_data_py2(serial_port, 36)
-           
-            TX_data_py2(serial_port, 47)
-            time.sleep(2)
-            TX_data_py2(serial_port, 44)
-            
-            time.sleep(0.2)
-            break
         
         cv2.imshow("img", result)
         cv2.waitKey(1)
@@ -159,22 +133,22 @@ def loop(serial_port):
         if  x == -1:
             continue
             
-        if  x > 185:
+        if  x > 180:
             TX_data_py2(serial_port, 20)
             
           
                 
-        elif x>10 and x < 135:
+        elif x>10 and x < 140:
             TX_data_py2(serial_port, 15)
              
            
         
-        elif x>=135 and x<=185:
-            TX_data_py2(serial_port, 47)  
+        elif x>=140 and x<=180:
+            break 
             
             
         
-        print(x)
+            
         time.sleep(1) 
         
 
@@ -183,8 +157,7 @@ def loop(serial_port):
     
     time.sleep(1)
     exit(1)
-
-
+    
 if __name__ == '__main__':
 
     BPS =  4800  # 4800,9600,14400, 19200,28800, 57600, 115200
@@ -205,9 +178,10 @@ if __name__ == '__main__':
     serial_t.start()
     serial_d.start()
     
-    #serial_t.join()
+   
     serial_d.join()
     print("end")
+       
     
-	
+    
     

@@ -182,7 +182,8 @@ def loop(serial_port):
 
     FPS         = 5  #PI CAMERA: 320 x 240 = MAX 90
 
-
+    TX_data_py2(serial_port, 59)
+    time.sleep(1)
     TX_data_py2(serial_port, 54)
     
     cap = cv2.VideoCapture(0)
@@ -250,7 +251,8 @@ def loop(serial_port):
     cap.release()
     cv2.destroyAllWindows()
     TX_data_py2(serial_port, 26)
-    time.sleep(1)
+    time.sleep(2)
+    TX_data_py2(serial_port, 58)
     print('recog')
     exit(1)
     

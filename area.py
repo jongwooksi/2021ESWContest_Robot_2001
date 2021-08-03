@@ -27,7 +27,7 @@ def loop(serial_port):
 
     lower = np.array([0, 0, 0])
     upper = np.array([180, 255, 50])
-    
+    time.sleep(5)
     while True:
         wait_receiving_exit()
         _,frame = cap.read()
@@ -36,17 +36,18 @@ def loop(serial_port):
 
         safe_mask = cv2.inRange(hsv, lower_green, upper_green)
 
-        green = cv2.bitwise_and(frame, frame, mask = safe_mask)
+        #green = cv2.bitwise_and(frame, frame, mask = safe_mask)
         
         dan_mask = cv2.inRange(hsv, lower, upper)
         
         safe_count = len(hsv[np.where(safe_mask != 0)])
         dan_count = len(hsv[np.where(dan_mask != 0)])
         
-        #print(safe_count)
-        #print(dan_count)
+        print("safe_count {}".format(safe_count))
+        print("dan_count {}".format(dan_count))
+
         
-        if safe_count > 15000:
+        if safe_count > 15000 and dan_count < 10:
            print("safe_zone")
            f = open("./data/area.txt", 'w')
            f.write("safe")
@@ -56,9 +57,9 @@ def loop(serial_port):
            TX_data_py2(serial_port, 21)
            break
            
-        elif dan_count > 15000:
+        elif dan_count > 15000 and safe_count < 10:
            print("dangerous_zone")
-           f = open("./dataarea.txt", 'w')
+           f = open("./data/area.txt", 'w')
            f.write("dangerous")
            f.close()
            
@@ -69,7 +70,8 @@ def loop(serial_port):
            break
 
 
-        
+        cv2.imshow("safe_mask", safe_mask)
+        cv2.imshow("dan_mask", dan_mask)
         cv2.waitKey(1)
         
 
