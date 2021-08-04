@@ -72,12 +72,21 @@ def loop(serial_port):
             f = open("./data/arrow.txt", 'w')
             print("left")
             f.write("left")
+            
+            TX_data_py2(serial_port, 26)
+            time.sleep(1)
+            TX_data_py2(serial_port, 32)
+            time.sleep(1)
             exit(1)
             
         if left_count<right_count and right_count > 10:
             f = open("./data/arrow.txt", 'w')
             print("right")
             f.write("right")
+            TX_data_py2(serial_port, 26)
+            time.sleep(1)
+            TX_data_py2(serial_port, 32)
+            time.sleep(1)
             exit(1)
            
            

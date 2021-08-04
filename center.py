@@ -120,32 +120,20 @@ def loop(serial_port) :
         cv2.imshow("img", result)
         cv2.waitKey(1)
         
-        if gradient>0 and gradient< 2.5:
-            TX_data_py2(serial_port, 4)
-            time.sleep(1)
-            continue
+ 
+        if  x == -1: break
+        if abs(gradient) < 1: break 
         
-        elif gradient<0 and gradient>-2.5:
-            TX_data_py2(serial_port, 6) 
-            time.sleep(1) 
-            continue
-           
-        if  x == -1:
-            continue
-            
+        
+        
         if  x > 180:
             TX_data_py2(serial_port, 20)
             
-          
-                
         elif x>10 and x < 140:
             TX_data_py2(serial_port, 15)
              
-           
-        
         elif x>=140 and x<=180:
             break 
-            
             
         
             

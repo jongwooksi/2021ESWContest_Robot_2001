@@ -75,10 +75,15 @@ def loop(serial_port):
     cap.set(5, FPS)  
     
     TX_data_py2(serial_port, 21)
+    time.sleep(1)
     TX_data_py2(serial_port, 29)
 	
-    turnflag = False
-
+    
+    f = open("./data/arrow.txt", 'r')
+    direction = f.readline()
+    print(direction)
+    
+    centerFlag = False
     
     while True:
         wait_receiving_exit()
@@ -104,57 +109,73 @@ def loop(serial_port):
         #print(gradient)
         print(x)
         
-     
+        if centerFlag is False and x is not -1:
+            print(gradient)
+            if gradient>0.2 and gradient< 2.5:
+                TX_data_py2(serial_port, 6)
+                time.sleep(1)
+                
         
-        if x >= 0:
-            TX_data_py2(serial_port, 9)
-            time.sleep(1)
-            TX_data_py2(serial_port, 9)
-            time.sleep(1)
-            TX_data_py2(serial_port, 9)
-            time.sleep(1)
-            TX_data_py2(serial_port, 9)
-            time.sleep(1)
-            TX_data_py2(serial_port, 9)
-            time.sleep(1)
-            TX_data_py2(serial_port, 9)
-            time.sleep(1)
-            TX_data_py2(serial_port, 9)
-            time.sleep(1)
-            TX_data_py2(serial_port, 9)
-            time.sleep(1)
-            
-            
-            TX_data_py2(serial_port, 30)
-            break
+            elif gradient<-0.2 and gradient>-2.5:
+                TX_data_py2(serial_port, 4) 
+                time.sleep(1) 
+                
+            else:
+                centerFlag = True
+                TX_data_py2(serial_port, 47)
+                time.sleep(1)
+                TX_data_py2(serial_port, 47)
+                time.sleep(1)
+                
+                if direction == "right":
+                    for i in range(5):
+                        TX_data_py2(serial_port, 59) 
+                        time.sleep(1) 
+                elif direction == "left":
+                    for i in range(5):
+                        TX_data_py2(serial_port, 58) 
+                        time.sleep(1) 
+                  
+                    
+            continue
+                
         
-        else:
-            TX_data_py2(serial_port, 59) 
-            time.sleep(1) 
+        if direction == "right":
+            if x >= 0 and abs(gradient) > 2:
+                for i in range(7):
+                    TX_data_py2(serial_port, 9)
+                    time.sleep(1)
+                TX_data_py2(serial_port, 30)
+                break
+            
+            else:
+                TX_data_py2(serial_port, 59) 
+                time.sleep(1) 
+                
+        elif direction == "left":
+            if x >= 0 and abs(gradient) > 2:
+                TX_data_py2(serial_port, 26)
+                time.sleep(1)
+                
+                for i in range(7):
+                    TX_data_py2(serial_port, 7)
+                    time.sleep(1)
+         
+                TX_data_py2(serial_port, 28)
+                break
+            
+            else:
+                TX_data_py2(serial_port, 58) 
+                time.sleep(1) 
                 
                  
-        '''  
-        if  x > 100:
-            TX_data_py2(serial_port, 20)
-            
-            time.sleep(1)
-                
-        elif x>10 and x < 60:
-            TX_data_py2(serial_port, 15)
-            time.sleep(1)   
-        
-        elif x>=60 and x<=100:
-            TX_data_py2(serial_port, 2)  
-            time.sleep(1)
-            turnflag = True
-        #time.sleep(5)
-       '''
+
         
         
 
     cap.release()
     cv2.destroyAllWindows()
-    
+    f.close()
     time.sleep(1)
     exit(1)
     

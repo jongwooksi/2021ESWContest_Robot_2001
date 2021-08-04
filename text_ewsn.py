@@ -78,19 +78,19 @@ def textRecog(textimage):
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
     textimage = cv2.dilate(textimage, kernel)
     
-    result = np.zeros((64, 128), np.uint8) + 255
+    result = np.zeros((128, 128), np.uint8) + 255
     result[5:59, 5:59] = textimage
     result[5:59, 59:113] = textimage
     
     
-    #cv2.imshow("aa", result)
-    #key = cv2.waitKey(1)
+    cv2.imshow("aa", result)
+    cv2.waitKey(1)
 
     text_image = pytesseract.image_to_string(result)
     text_image.replace(" ","")
     text_image.rstrip() 
     text_image = text_image[0:2]
-    
+    print(text_image)
     if text_image == "EE":
         text = "E"
     elif text_image == "WW":
@@ -106,13 +106,11 @@ def textRecog(textimage):
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
         textimage = cv2.dilate(textimage, kernel)
 
-        result = np.zeros((64, 128), np.uint8) + 255
+        result = np.zeros((128, 128), np.uint8) + 255
         result[5:59, 5:59] = textimage
         result[5:59, 59:113] = textimage
 
-        #cv2.imshow("canny", result)
-        #ey = cv2.waitKey(1)
-
+    
         text_image = pytesseract.image_to_string(result, lang='eng')
         text_image.replace(" ","")
         text_image.rstrip() 
@@ -133,7 +131,7 @@ def textRecog(textimage):
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
         textimage = cv2.erode(textimage, kernel)
 
-        result = np.zeros((64, 128), np.uint8) + 255
+        result = np.zeros((128, 128), np.uint8) + 255
         result[5:59, 5:59] = textimage
         result[5:59, 59:113] = textimage
 
@@ -182,6 +180,10 @@ def loop(serial_port):
 
     FPS         = 5  #PI CAMERA: 320 x 240 = MAX 90
 
+    TX_data_py2(serial_port, 21)
+    time.sleep(1)
+    TX_data_py2(serial_port, 43)
+    time.sleep(1)
     TX_data_py2(serial_port, 59)
     time.sleep(1)
     TX_data_py2(serial_port, 54)

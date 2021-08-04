@@ -19,7 +19,7 @@ def loop(serial_port):
     cap.set(3, W_View_size)
     cap.set(4, H_View_size)
     cap.set(5, FPS)  
-    TX_data_py2(serial_port, 30)
+    #TX_data_py2(serial_port, 30)
     TX_data_py2(serial_port, 31)
 	
     lower_green = (35, 30, 30)
@@ -47,7 +47,7 @@ def loop(serial_port):
         print("dan_count {}".format(dan_count))
 
         
-        if safe_count > 15000 and dan_count < 10:
+        if safe_count > 15000 and dan_count < 30:
            print("safe_zone")
            f = open("./data/area.txt", 'w')
            f.write("safe")
@@ -57,7 +57,7 @@ def loop(serial_port):
            TX_data_py2(serial_port, 21)
            break
            
-        elif dan_count > 15000 and safe_count < 10:
+        elif dan_count > 15000 and safe_count < 30:
            print("dangerous_zone")
            f = open("./data/area.txt", 'w')
            f.write("dangerous")
