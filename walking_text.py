@@ -83,8 +83,6 @@ def loop(serial_port):
     direction = f.readline()
     print(direction)
     
-    centerFlag = False
-    
     while True:
         wait_receiving_exit()
         _,frame = cap.read()
@@ -109,39 +107,12 @@ def loop(serial_port):
         #print(gradient)
         print(x)
         
-        if centerFlag is False and x is not -1:
-            print(gradient)
-            if gradient>0.2 and gradient< 2.5:
-                TX_data_py2(serial_port, 6)
-                time.sleep(1)
-                
-        
-            elif gradient<-0.2 and gradient>-2.5:
-                TX_data_py2(serial_port, 4) 
-                time.sleep(1) 
-                
-            else:
-                centerFlag = True
-                TX_data_py2(serial_port, 47)
-                time.sleep(1)
-                TX_data_py2(serial_port, 47)
-                time.sleep(1)
-                
-                if direction == "right":
-                    for i in range(5):
-                        TX_data_py2(serial_port, 59) 
-                        time.sleep(1) 
-                elif direction == "left":
-                    for i in range(5):
-                        TX_data_py2(serial_port, 58) 
-                        time.sleep(1) 
-                  
-                    
-            continue
-                
-        
+     
+     
+     
+     
         if direction == "right":
-            if x >= 0 and abs(gradient) > 2:
+            if x >= 0:
                 for i in range(7):
                     TX_data_py2(serial_port, 9)
                     time.sleep(1)
@@ -153,7 +124,7 @@ def loop(serial_port):
                 time.sleep(1) 
                 
         elif direction == "left":
-            if x >= 0 and abs(gradient) > 2:
+            if x >= 0:
                 TX_data_py2(serial_port, 26)
                 time.sleep(1)
                 

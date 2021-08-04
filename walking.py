@@ -138,11 +138,11 @@ def loop(serial_port):
            
             TX_data_py2(serial_port, 47)
             time.sleep(2)
-            TX_data_py2(serial_port, 58)
-            time.sleep(2)
+            #TX_data_py2(serial_port, 58)
+            #time.sleep(2)
             TX_data_py2(serial_port, 44)
             
-            time.sleep(0.2)
+            time.sleep(2)
             break
         
         cv2.imshow("img", result)
@@ -163,17 +163,17 @@ def loop(serial_port):
             
         if  x > 185:
             TX_data_py2(serial_port, 20)
-            
+            time.sleep(1) 
           
                 
         elif x>10 and x < 135:
             TX_data_py2(serial_port, 15)
-             
+            time.sleep(1)  
            
         
         elif x>=135 and x<=185:
             TX_data_py2(serial_port, 47)  
-            
+            time.sleep(1) 
             
         
         print(x)

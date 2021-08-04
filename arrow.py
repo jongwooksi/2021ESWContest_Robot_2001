@@ -22,8 +22,12 @@ def loop(serial_port):
     right_count = 0
     
     time.sleep(1)
+    TX_data_py2(serial_port, 32)
+    time.sleep(1)
     TX_data_py2(serial_port, 43)
     TX_data_py2(serial_port, 54)
+    
+    Flag = False
     
     while True:
         wait_receiving_exit()
@@ -46,7 +50,24 @@ def loop(serial_port):
           
             
             if area > 2000 and area < 320*180:
-
+                
+                if Flag is False:
+                    left = list(tuple(cnt[cnt[:, :, 0].argmin()][0]))
+                    right = list(tuple(cnt[cnt[:, :, 0].argmax()][0]))
+                    print("--------------")
+                    print(left[0])
+                    print(right[0])
+                    
+                    if int(left[0]) < 2 : 
+                        TX_data_py2(serial_port, 62)
+                        time.sleep(1)
+                        Flag = True
+                        
+                    if int(right[0])> 318 : 
+                        TX_data_py2(serial_port, 63)
+                        time.sleep(1)
+                        Flag = True
+                        
                 points = []
                
                 if len(approx)==7:
@@ -75,8 +96,9 @@ def loop(serial_port):
             
             TX_data_py2(serial_port, 26)
             time.sleep(1)
-            TX_data_py2(serial_port, 32)
+            TX_data_py2(serial_port, 43)
             time.sleep(1)
+            TX_data_py2(serial_port, 21)
             exit(1)
             
         if left_count<right_count and right_count > 10:
@@ -85,14 +107,15 @@ def loop(serial_port):
             f.write("right")
             TX_data_py2(serial_port, 26)
             time.sleep(1)
-            TX_data_py2(serial_port, 32)
+            TX_data_py2(serial_port, 43)
             time.sleep(1)
+            TX_data_py2(serial_port, 21
             exit(1)
            
            
         #cv2.imshow("Frame",frame)
-       #cv2.imshow("MASK",mask)
-        #cv2.waitKey(1)
+        cv2.imshow("MASK",mask)
+        cv2.waitKey(1)
         time.sleep(0.1)
         
 
@@ -100,7 +123,7 @@ def loop(serial_port):
        
        
     
-    TX_data_py2(serial_port, 43)
+    
     f.close()
     cap.release()
     cv2.destroyAllWindows() 

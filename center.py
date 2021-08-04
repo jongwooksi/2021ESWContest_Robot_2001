@@ -123,7 +123,15 @@ def loop(serial_port) :
  
         if  x == -1: break
         if abs(gradient) < 1: break 
+        elif gradient>0 and gradient< 2.5:
+            TX_data_py2(serial_port, 4)
+            time.sleep(1)
+            continue
         
+        elif gradient<0 and gradient>-2.5:
+            TX_data_py2(serial_port, 6) 
+            time.sleep(1) 
+            continue
         
         
         if  x > 180:
