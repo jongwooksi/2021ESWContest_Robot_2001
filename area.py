@@ -8,7 +8,7 @@ from serialdata import *
 
 def loop(serial_port):
 	
-    W_View_size = 320
+    W_View_size = 320 # original : 320
     H_View_size = int(W_View_size / 1.333)
 
     FPS         = 10  #PI CAMERA: 320 x 240 = MAX 90
@@ -19,8 +19,16 @@ def loop(serial_port):
     cap.set(3, W_View_size)
     cap.set(4, H_View_size)
     cap.set(5, FPS)  
-    #TX_data_py2(serial_port, 30)
-    TX_data_py2(serial_port, 31)
+    
+    f = open("./data/arrow.txt", 'r')
+    direction = f.readline()
+    print(direction)
+    if direction == "left":
+        TX_data_py2(serial_port, 28)
+        TX_data_py2(serial_port, 31)
+    elif direction == "right":
+        TX_data_py2(serial_port, 30)
+        TX_data_py2(serial_port, 31)
 	
     lower_green = (35, 30, 30)
     upper_green = (100, 255, 255)
@@ -31,7 +39,6 @@ def loop(serial_port):
     while True:
         wait_receiving_exit()
         _,frame = cap.read()
-  
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         safe_mask = cv2.inRange(hsv, lower_green, upper_green)
@@ -47,7 +54,7 @@ def loop(serial_port):
         print("dan_count {}".format(dan_count))
 
         
-        if safe_count > 15000 and dan_count < 30:
+        if safe_count > 15000 and dan_count < 100: # original safe_count = 15000 , dan_count = 30
            print("safe_zone")
            f = open("./data/area.txt", 'w')
            f.write("safe")
@@ -57,7 +64,7 @@ def loop(serial_port):
            TX_data_py2(serial_port, 21)
            break
            
-        elif dan_count > 15000 and safe_count < 30:
+        elif dan_count > 15000 and safe_count < 100: # original dan_count = 15000 , safe_count = 30
            print("dangerous_zone")
            f = open("./data/area.txt", 'w')
            f.write("dangerous")

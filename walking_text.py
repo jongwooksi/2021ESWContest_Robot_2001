@@ -62,7 +62,7 @@ def draw_lines(img, lines, color=[0, 0, 255], thickness=3):
     
 
 def loop(serial_port):
-    W_View_size = 160
+    W_View_size = 120
     H_View_size = int(W_View_size / 1.333)
 
     FPS         = 1  #PI CAMERA: 320 x 240 = MAX 90
@@ -82,6 +82,7 @@ def loop(serial_port):
     f = open("./data/arrow.txt", 'r')
     direction = f.readline()
     print(direction)
+    f.close()
     
     while True:
         wait_receiving_exit()
@@ -121,7 +122,7 @@ def loop(serial_port):
             
             else:
                 TX_data_py2(serial_port, 59) 
-                time.sleep(1) 
+                time.sleep(2.5) 
                 
         elif direction == "left":
             if x >= 0:
@@ -137,7 +138,7 @@ def loop(serial_port):
             
             else:
                 TX_data_py2(serial_port, 58) 
-                time.sleep(1) 
+                time.sleep(2.5) 
                 
                  
 

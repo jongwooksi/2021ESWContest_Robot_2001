@@ -214,7 +214,8 @@ def loop(serial_port):
     
     
     TX_data_py2(serial_port, 43)
-    #TX_data_py2(serial_port, 54)
+    TX_data_py2(serial_port, 54)
+    
     
     time.sleep(1)
     
@@ -223,6 +224,10 @@ def loop(serial_port):
     area = f.readline()
     f.close()
     
+    f_dir = open("./data/arrow.txt", 'r')
+    direction = f_dir.readline()
+    print(direction)
+    f_dir.close()
     
     
     f2 = open("./data/result.txt","w")
@@ -269,25 +274,37 @@ def loop(serial_port):
             f3.write(color)
             if area == "dangerous":
                 f2.write(text)
-            TX_data_py2(serial_port, 19)
+            if direction == "right":
+                TX_data_py2(serial_port, 19)
+            elif direction == "left":
+                TX_data_py2(serial_port, 25)
             break
         elif text == "B":
             f3.write(color)
             if area == "dangerous":
                 f2.write(text)
-            TX_data_py2(serial_port, 19)
+            if direction == "right":
+                TX_data_py2(serial_port, 19)
+            elif direction == "left":
+                TX_data_py2(serial_port, 25)
             break
         elif text == "C":
             f3.write(color)
             if area == "dangerous":
                 f2.write(text)
-            TX_data_py2(serial_port, 19)
+            if direction == "right":
+                TX_data_py2(serial_port, 19)
+            elif direction == "left":
+                TX_data_py2(serial_port, 25)
             break
         elif text == "D":
             f3.write(color)
             if area == "dangerous":
                 f2.write(text)
-            TX_data_py2(serial_port, 19)
+            if direction == "right":
+                TX_data_py2(serial_port, 19)
+            elif direction == "left":
+                TX_data_py2(serial_port, 25)
             break
         
         

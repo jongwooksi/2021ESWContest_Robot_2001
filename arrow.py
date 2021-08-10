@@ -57,7 +57,6 @@ def loop(serial_port):
                     print("--------------")
                     print(left[0])
                     print(right[0])
-                    
                     if int(left[0]) < 2 : 
                         TX_data_py2(serial_port, 62)
                         time.sleep(1)
@@ -109,7 +108,7 @@ def loop(serial_port):
             time.sleep(1)
             TX_data_py2(serial_port, 43)
             time.sleep(1)
-            TX_data_py2(serial_port, 21
+            TX_data_py2(serial_port, 21)
             exit(1)
            
            

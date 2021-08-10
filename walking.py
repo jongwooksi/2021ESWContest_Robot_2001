@@ -84,7 +84,9 @@ def loop(serial_port):
     H_View_size = int(W_View_size / 1.333)
 
     FPS         = 10  #PI CAMERA: 320 x 240 = MAX 90
-
+    TX_data_py2(serial_port, 29)
+    
+    time.sleep(1)
 
     cap = cv2.VideoCapture(0)
 
@@ -93,7 +95,7 @@ def loop(serial_port):
     cap.set(5, FPS)  
     
 
-    TX_data_py2(serial_port, 29)
+    
     
     while True:
         wait_receiving_exit()
