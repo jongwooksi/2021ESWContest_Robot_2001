@@ -79,12 +79,13 @@ def draw_lines(img, lines, color=[0, 0, 255], thickness=3):
     return x, y, gradient
 
 def loop(serial_port):
-    
+    #TX_data_py2(serial_port, 21) #head center
+    #time.sleep(1)
     W_View_size = 320
     H_View_size = int(W_View_size / 1.333)
 
     FPS         = 10  #PI CAMERA: 320 x 240 = MAX 90
-    TX_data_py2(serial_port, 29)
+    TX_data_py2(serial_port, 29) #head bottom
     
     time.sleep(1)
 
@@ -143,6 +144,8 @@ def loop(serial_port):
             #TX_data_py2(serial_port, 58)
             #time.sleep(2)
             TX_data_py2(serial_port, 44)
+            time.sleep(2)
+            TX_data_py2(serial_port, 32)
             
             time.sleep(2)
             break

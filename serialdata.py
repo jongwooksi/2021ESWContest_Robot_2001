@@ -7,18 +7,19 @@ from threading import Thread
 serial_use = 1
 serial_port =  None
 Read_RX =  0
-receiving_exit = 1
+receiving_exit = 0
 threading_Time = 0.01
 distance_count = 0
 distance_exit = 1
-
+count = 0
 def TX_data_py2(ser, one_byte): 
 
     while receiving_exit == 1:
         time.sleep(threading_Time)  
         
         
-    ser.write(serial.to_bytes([one_byte])) 
+    ser.write(serial.to_bytes([one_byte]))
+  
     
     
      
@@ -75,5 +76,20 @@ def get_distance():
 def wait_receiving_exit():
     while receiving_exit == 1:
         time.sleep(threading_Time) 
-    time.sleep(0.5)
+    time.sleep(0.05)
     
+    
+def get_receiving():
+    return receiving_exit
+    
+def count_frame():
+    global count
+    
+    if count < 1:
+        count += 1
+        #print("count",count)
+        return False
+    if count == 1:
+        count = 0
+        #print("count",count)
+        return True

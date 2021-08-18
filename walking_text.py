@@ -66,23 +66,38 @@ def loop(serial_port):
     H_View_size = int(W_View_size / 1.333)
 
     FPS         = 1  #PI CAMERA: 320 x 240 = MAX 90
-
+    '''
+    TX_data_py2(serial_port, 47)   # 앞으로 4번 
+    time.sleep(2) 
+    TX_data_py2(serial_port, 47)  
+    time.sleep(2) 
+    TX_data_py2(serial_port, 47)  
+    time.sleep(2) 
+    TX_data_py2(serial_port, 47)  
+    time.sleep(2) 
+    '''
+    f = open("./data/arrow.txt", 'r')
+    direction = f.readline()
+    print(direction)
+    f.close()
+    
+    TX_data_py2(serial_port, 21)
+    time.sleep(1)
+    TX_data_py2(serial_port, 29)
+    
+    for i in range(6):
+        if direction == 'left':
+            TX_data_py2(serial_port,58)
+            time.sleep(2.5)
+        elif direction == 'right':
+            TX_data_py2(serial_port, 59)
+            time.sleep(2.5)
 
     cap = cv2.VideoCapture(0)
 
     cap.set(3, W_View_size)
     cap.set(4, H_View_size)
     cap.set(5, FPS)  
-    
-    TX_data_py2(serial_port, 21)
-    time.sleep(1)
-    TX_data_py2(serial_port, 29)
-	
-    
-    f = open("./data/arrow.txt", 'r')
-    direction = f.readline()
-    print(direction)
-    f.close()
     
     while True:
         wait_receiving_exit()
@@ -108,10 +123,6 @@ def loop(serial_port):
         #print(gradient)
         print(x)
         
-     
-     
-     
-     
         if direction == "right":
             if x >= 0:
                 for i in range(7):
@@ -141,9 +152,6 @@ def loop(serial_port):
                 time.sleep(2.5) 
                 
                  
-
-        
-        
 
     cap.release()
     cv2.destroyAllWindows()

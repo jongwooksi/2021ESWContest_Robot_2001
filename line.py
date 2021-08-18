@@ -40,10 +40,7 @@ def draw_lines(img, lines, color=[0, 0, 255], thickness=3):
     for line in lines:
         for x1,y1,x2,y2 in line:
                            
-            if y2 < 120 and y1 < 120 :
-                continue
-            
-             
+
             if maxvalue < max(y1, y2):
                 maxvalue = max(y1, y2)
             
@@ -55,102 +52,137 @@ def draw_lines(img, lines, color=[0, 0, 255], thickness=3):
                 point[2] = x2
                 point[3] = y2
        
-    if point[0] == 0 and point[1] == 0:
-         for line in lines:
-            for x1,y1,x2,y2 in line:
-                               
-                
-                 
-                if maxvalue < max(y1, y2):
-                    maxvalue = max(y1, y2)
-                
-                    gradient = (y2-y1)/(x2-x1+0.00001)
-                    
-                    x = max(x1, x2)
-                    point[0] = x1
-                    point[1] = y1
-                    point[2] = x2
-                    point[3] = y2
-            
-        
         
     cv2.line(img, (point[0], point[1]), (point[2], point[3]), color, thickness)
             
     return x, y, gradient
     
-def loop(serial_port) :
-    
-    W_View_size = 320
+def loop(serial_port):
+    W_View_size = 320 # original 320 
     H_View_size = int(W_View_size / 1.333)
-
+    print("Image Size : ",W_View_size, H_View_size)
     FPS         = 1  #PI CAMERA: 320 x 240 = MAX 90
-    #TX_data_py2(serial_port, 32)
-    #time.sleep(2)
+    
+    TX_data_py2(serial_port, 21)
+    time.sleep(1)
+    TX_data_py2(serial_port, 29)
+    time.sleep(1)
+    
     cap = cv2.VideoCapture(0)
 
     cap.set(3, W_View_size)
     cap.set(4, H_View_size)
     cap.set(5, FPS)  
-    
 
-    TX_data_py2(serial_port, 29)
-	
+    while True:
+       
+        _,frame = cap.read()
+        if not count_frame():
+            continue
+        #cv2.imshow('original', frame)
+        #cv2.waitKey(1)
+        img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        
+        lower_yellow = np.array([10, 80, 100])
+        upper_yellow = np.array([60, 255, 255])
+        mask = cv2.inRange(img, lower_yellow, upper_yellow)
+        image_result = cv2.bitwise_and(frame, frame,mask = mask)
+        
+        gray_img = grayscale(image_result)
+        #blur_img = gaussian_blur(gray_img, 3)
+        cv2.imshow('result',image_result)
+        cv2.waitKey(1)
+        
+        canny_img = canny(gray_img, 20, 30)
+        #cv2.imshow('canny', canny_img)
+        #cv2.waitKey(1)
+        hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20)
+        print(x)
+        #cv2.imshow('hough', hough_img)
+        #cv2.waitKey(1)
+        
+        
+            
+        if gradient>0 and gradient< 2.5:
+            TX_data_py2(serial_port, 7)
+            time.sleep(2)
+            continue
+        
+        elif gradient<0 and gradient>-2.5:
+            TX_data_py2(serial_port, 9) 
+            time.sleep(2) 
+            continue
+           
+        if  x == -1:
+            continue
+            
+        if  x > 185:
+            TX_data_py2(serial_port, 20)
+            time.sleep(2) 
+          
+                
+        elif x>10 and x < 135:
+            TX_data_py2(serial_port, 15)
+            time.sleep(2)  
+           
+        
+        elif x>=135 and x<=185:
+            TX_data_py2(serial_port, 47)  
+            time.sleep(2) 
+            
+        
+        print(x, gradient)   
+           
+        #wait_receiving_exit() 
+    
+    '''
     while True:
         wait_receiving_exit()
         _,frame = cap.read()
+        cv2.imshow('original', frame)
+        cv2.waitKey(1)
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
         lower_yellow = np.array([10, 100, 100])
         upper_yellow = np.array([50, 255, 255])
         mask = cv2.inRange(img, lower_yellow, upper_yellow)
         image_result = cv2.bitwise_and(frame, frame,mask = mask)
-        cv2.imshow("a", image_result)
-        cv2.waitKey(1)
+        
         gray_img = grayscale(image_result)
-        blur_img = gaussian_blur(gray_img, 3)
-        canny_img = canny(blur_img, 20, 30)
+        #blur_img = gaussian_blur(gray_img, 3)
+        
+        canny_img = canny(gray_img, 20, 30)
         
         
         hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20 )
         result = weighted_img(hough_img, frame)
-        
+        #cv2.imshow('oimg',canny_img)
+        #cv2.waitKey(1)
         #print(gradient)
+        print(x)
         
-        
-        cv2.imshow("img", result)
-        cv2.waitKey(1)
-        
- 
-        if  x == -1: 
-            print("No Line")
+        if  x == -1:
+            TX_data_py2(serial_port, 30)
             break
-        '''
-        if abs(gradient) < 1: break 
-        elif gradient>0 and gradient< 2.5:
-            TX_data_py2(serial_port, 4)
+        
+            
+        if  x > 90: #180
+            TX_data_py2(serial_port, 20) #20
+            
             time.sleep(1)
-            continue
-        
-        elif gradient<0 and gradient>-2.5:
-            TX_data_py2(serial_port, 6) 
-            time.sleep(1) 
-            continue
-        '''
-        
-        if  x > 150:
-            TX_data_py2(serial_port, 20)
-            
-        elif x>10 and x < 140:
-            TX_data_py2(serial_port, 15)
+                
+        elif x>5 and x < 70: #10, 140
+            TX_data_py2(serial_port, 15) #15
              
-        elif x>=140 and x<=150: # orginal 140 ~ 180
-            print("Center")
-            break 
-            
+            time.sleep(1)   
         
-            
-        time.sleep(1) 
+        elif x>=70 and x<=90: # 140, 180
+            TX_data_py2(serial_port, 47)  
+            time.sleep(1)
+        #time.sleep(5)
+       
         
+    '''
 
     cap.release()
     cv2.destroyAllWindows()
@@ -178,10 +210,8 @@ if __name__ == '__main__':
     serial_t.start()
     serial_d.start()
     
-   
+    serial_t.join()
     serial_d.join()
     print("end")
-       
-    
-    
+        
     

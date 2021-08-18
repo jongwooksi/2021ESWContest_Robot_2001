@@ -34,10 +34,12 @@ def textImageProcessing(img, frame):
 
         if area > 1000:
             #cv2.drawContours(frame, [approx], 0, (0, 0, 255), 5)
+            #cv2.imshow("d", frame)
+            #cv2.waitKey(1)
             if len(approx) == 4:
                 cv2.drawContours(frame, [approx], 0, (0, 0, 255), 5)
-                #cv2.imshow("d", frame)
-                #key = cv2.waitKey(1)
+                cv2.imshow("d", frame)
+                key = cv2.waitKey(1)
                 left = list(tuple(c[c[:, :, 0].argmin()][0]))
                 top = list(tuple(c[c[:, :, 1].argmin()][0]))
                 right = list(tuple(c[c[:, :, 0].argmax()][0]))
@@ -202,7 +204,8 @@ def loop(serial_port):
 
     FPS         = 90  #PI CAMERA: 320 x 240 = MAX 90
 
-
+    rectangle_count = 0
+    head_flag = False
     
     
 
@@ -212,7 +215,7 @@ def loop(serial_port):
     cap.set(4, H_View_size)
     cap.set(5, FPS)  
     
-    
+    TX_data_py2(serial_port, 21)
     TX_data_py2(serial_port, 43)
     TX_data_py2(serial_port, 54)
     
@@ -246,8 +249,23 @@ def loop(serial_port):
 
         if key == 27:
             break
-
+        # original : only continue
         if points[0][0] is -1:
+            if rectangle_count == 15 and head_flag is False:
+                # head left 28
+                TX_data_py2(serial_port, 28)
+                time.sleep(1)
+                rectangle_count = 0
+                head_flag = True
+                continue
+            elif rectangle_count == 15 and head_flag is True:
+                # head right 30
+                TX_data_py2(serial_port, 30)
+                time.sleep(1)
+                rectangle_count = 0
+                head_flag = False
+                continue
+            rectangle_count += 1
             continue
 
         print(points)
@@ -270,6 +288,11 @@ def loop(serial_port):
         text, color = Recog(textimage, img_color)
 
         print("text : {} \ncolor : {}".format(text, color))
+        
+        if text =="A" or text =="B" or text=="C" or text=="D":
+            TX_data_py2(serial_port, 26)
+        time.sleep(2)
+        
         if text == "A":
             f3.write(color)
             if area == "dangerous":

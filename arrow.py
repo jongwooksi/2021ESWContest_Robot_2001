@@ -23,7 +23,11 @@ def loop(serial_port):
     
     time.sleep(1)
     TX_data_py2(serial_port, 32)
-    time.sleep(1)
+    time.sleep(2)
+    TX_data_py2(serial_port, 32)
+    time.sleep(2)
+    TX_data_py2(serial_port, 32)
+    time.sleep(2)
     TX_data_py2(serial_port, 43)
     TX_data_py2(serial_port, 54)
     
@@ -62,7 +66,7 @@ def loop(serial_port):
                         time.sleep(1)
                         Flag = True
                         
-                    if int(right[0])> 318 : 
+                    if int(right[0]) > 318 : 
                         TX_data_py2(serial_port, 63)
                         time.sleep(1)
                         Flag = True
