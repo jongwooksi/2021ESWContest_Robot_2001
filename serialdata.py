@@ -93,3 +93,17 @@ def count_frame():
         count = 0
         #print("count",count)
         return True
+
+    
+def count_frame_333():
+    global count
+    
+    if count < 4:
+        count += 1
+        #print("count",count)
+        return False
+    if count == 4:
+        count = 0
+        #print("count",count)
+        return True
+        
