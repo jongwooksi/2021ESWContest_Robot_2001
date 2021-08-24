@@ -93,13 +93,17 @@ def loop(serial_port):
     color = f3.readline()
     f3.close()
     
+    f2 = open("./data/arrow.txt","r")
+    direction = f2.readline()
+    f2.close()
+    
     print(area)
     print(color)
     
     stage = 0
     step = 0
     
-    if area == "dangerous":
+    if area == "dangerous": # 위험지역
         while True:
             #wait_receiving_exit()
     
@@ -132,7 +136,22 @@ def loop(serial_port):
                 loc = (x + x + w)/2
                 print(loc)
             
-            if stage == 0:
+            if stage == 0: 
+                if direction == "right":
+                    if loc >= 140 and loc <= 180:
+                        stage = 1
+                        TX_data_py2(serial_port, 29) #Head Down 80   
+                        continue
+                    else:
+                        TX_data_py2(serial_port, 20)
+                elif direction == "left":
+                    if loc >= 140 and loc <= 180:
+                        stage = 1
+                        TX_data_py2(serial_port, 29) #Head Down 80   
+                        continue
+                    else:
+                        TX_data_py2(serial_port, 15)
+                    '''
                 if  loc > 180:
                     TX_data_py2(serial_port, 20)
                     
@@ -151,7 +170,7 @@ def loop(serial_port):
                 elif loc < 0 :
                     TX_data_py2(serial_port, 47)
                 
-            
+            '''
             
                     
             elif stage == 1:
@@ -183,8 +202,6 @@ def loop(serial_port):
                         TX_data_py2(serial_port, 47)
                         time.sleep(1)
                         step+= 1
-            
-                
                     elif loc< 0 :
                         TX_data_py2(serial_port, 47)
                         time.sleep(1)
@@ -225,22 +242,23 @@ def loop(serial_port):
                 for i in range(step_count+1):
                     TX_data_py2(serial_port, 51)
                     time.sleep(1)
-                    
-                
                 TX_data_py2(serial_port, 53)
+                time.sleep(1)
+                if direction == "right":
+                    TX_data_py2(serial_port, 48)
+                elif direction == "left":
+                    TX_data_py2(serial_port, 49)
                 time.sleep(1)
                 cap.release()
                 cv2.destroyAllWindows()
                 exit(1)  
-                  
-
-    
             time.sleep(1) 
             
 
     area_zone = [0,0]
     
-    if area == "safe":
+    if area == "safe": # 안전지역
+        first_flag = True
         while True:
             _,frame = cap.read()
             if not count_frame_333():
@@ -272,6 +290,20 @@ def loop(serial_port):
                 print(loc)
                 
             if stage == 0:
+                if first_flag == True:
+                    print("x location ",x)
+                    if x > 160:
+                        safeloc = "left"
+                        for i in range(2):
+                            TX_data_py2(serial_port, 9)
+                            time.sleep(1)
+                    elif x < 160:
+                        safeloc = "right"
+                        for i in range(2):
+                            TX_data_py2(serial_port, 7)
+                            time.sleep(1)
+                    first_flag = False
+                    
                 if  loc > 180:
                     TX_data_py2(serial_port, 20)
                 elif loc>10 and loc < 140:
@@ -316,37 +348,13 @@ def loop(serial_port):
                     continue
                     
             elif stage == 3:
-                TX_data_py2(serial_port, 30)
-                dan_mask = cv2.inRange(img_hsv, lower_green, upper_green)
-                safe_count = len(img_hsv[np.where(dan_mask != 0)])
+                TX_data_py2(serial_port, 21)
                 time.sleep(2)
-   
-                print(safe_count)
-                if safe_count > 100 :
-                    area_zone[0] += 1 
-                else :
-                    area_zone[1] += 1
-                    
-                 
-                if sum(area_zone) > 5:
-                    if area_zone[0] > area_zone[1] :
-                        safeloc = "right"
-                        print(safeloc)
-                        TX_data_py2(serial_port, 21)
-                        time.sleep(2)
-                        TX_data_py2(serial_port, 29) #original 31
-                        time.sleep(2)
-                        TX_data_py2(serial_port, 45) #Milk Up
-                        stage = 4
-                    else:
-                        safeloc = "left"
-                        TX_data_py2(serial_port, 21)
-                        time.sleep(2)
-                        TX_data_py2(serial_port, 29) #original 31
-                        time.sleep(2)
-                        TX_data_py2(serial_port, 45) #Milk Up
-                        stage = 4
-           
+                TX_data_py2(serial_port, 29) #original 31
+                time.sleep(2)
+                TX_data_py2(serial_port, 45) #Milk Up
+                stage = 4
+                
             elif stage == 4:
                 dan_mask = cv2.inRange(img_hsv, lower_green, upper_green)
                 safe_count = len(img_hsv[np.where(dan_mask != 0)])
@@ -373,16 +381,36 @@ def loop(serial_port):
                     
             
             elif stage == 5 :
-                if safeloc == "right":
-                    for i in range(step*2):
-                        TX_data_py2(serial_port, 50) #Left
-                        time.sleep(1)
-                    TX_data_py2(serial_port, 48)
-                elif safeloc == "left":
-                    for i in range(int(step*1.5)):
-                        TX_data_py2(serial_port, 52) #Right
-                        time.sleep(1)
-                    TX_data_py2(serial_port, 49)
+                if direction == "right":
+                    if safeloc == "right":
+                        print("LOCATION", safeloc)
+                        for i in range(step*2):
+                            TX_data_py2(serial_port, 50) #Left
+                            time.sleep(1)
+                        TX_data_py2(serial_port, 48) 
+                    elif safeloc == "left":
+                        print("LOCATION", safeloc)
+                        for i in range(int(step*1.5)):
+                            TX_data_py2(serial_port, 52) #Right
+                            time.sleep(1)
+                        for i in range(2):
+                            TX_data_py2(serial_port, 49)
+                            time.sleep(1)
+                elif direction == "left":
+                    if safeloc == "right":
+                        print("LOCATION", safeloc)
+                        for i in range(step*2):
+                            TX_data_py2(serial_port, 50) #Left
+                            time.sleep(1)
+                        for i in range(2):
+                            TX_data_py2(serial_port, 48)
+                    elif safeloc == "left":
+                        print("LOCATION", safeloc)
+                        for i in range(int(step*1.5)):
+                            TX_data_py2(serial_port, 52) #Right
+                            time.sleep(1)
+                        TX_data_py2(serial_port, 49)
+                
 
           
                 cap.release()

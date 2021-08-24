@@ -57,7 +57,7 @@ def loop(serial_port):
     #TX_data_py2(serial_port, 29)
     f = open("./data/arrow.txt", 'r')
     arrow = f.readline()
-    
+    '''
     for i in range(7):
         _,frame = cap.read()
         if arrow == 'left':
@@ -66,11 +66,13 @@ def loop(serial_port):
         elif arrow == 'right':
             TX_data_py2(serial_port, 59)
             time.sleep(2.5)
-    
+    '''
     while True:
-        wait_receiving_exit()
+        #wait_receiving_exit()
         
         _,frame = cap.read()
+        if not count_frame_333():
+            continue
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
         lower_black = np.array([0, 0, 0])
@@ -91,7 +93,7 @@ def loop(serial_port):
         if arrow == 'left':
             TX_data_py2(serial_port, 58) 
             time.sleep(2.5)
-            if get_distance() >= 2: #black_count >= 5000
+            if black_count >= 5000: #get_distance() >= 2
                 for i in range(6):
                     TX_data_py2(serial_port, 7)
                     time.sleep(1)
@@ -103,7 +105,7 @@ def loop(serial_port):
         elif arrow == 'right':
             TX_data_py2(serial_port, 59) 
             time.sleep(2.5)
-            if get_distance() >= 2: #black_count >= 5000
+            if black_count >= 5000: #get_distance() >= 2
                 for i in range(6):
                     TX_data_py2(serial_port, 9) 
                     time.sleep(1)

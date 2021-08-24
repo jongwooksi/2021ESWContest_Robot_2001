@@ -66,7 +66,7 @@ def loop(serial_port):
     H_View_size = int(W_View_size / 1.333)
 
     FPS         = 1  #PI CAMERA: 320 x 240 = MAX 90
-    '''
+    
     TX_data_py2(serial_port, 47)   # 앞으로 4번 
     time.sleep(2) 
     TX_data_py2(serial_port, 47)  
@@ -75,7 +75,7 @@ def loop(serial_port):
     time.sleep(2) 
     TX_data_py2(serial_port, 47)  
     time.sleep(2) 
-    '''
+    
     f = open("./data/arrow.txt", 'r')
     direction = f.readline()
     print(direction)
@@ -100,8 +100,10 @@ def loop(serial_port):
     cap.set(5, FPS)  
     
     while True:
-        wait_receiving_exit()
+        #wait_receiving_exit()
         _,frame = cap.read()
+        if not count_frame():
+            continue
         #time.sleep(2)
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         

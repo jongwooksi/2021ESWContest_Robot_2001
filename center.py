@@ -96,8 +96,10 @@ def loop(serial_port) :
     TX_data_py2(serial_port, 29)
 	
     while True:
-        wait_receiving_exit()
+        #wait_receiving_exit()
         _,frame = cap.read()
+        if not count_frame():
+            continue
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
         lower_yellow = np.array([10, 100, 100])
@@ -136,14 +138,14 @@ def loop(serial_port) :
             time.sleep(1) 
             continue
         '''
-        
-        if  x > 150:
+        print("x",x)
+        if  x > 180:
             TX_data_py2(serial_port, 20)
             
         elif x>10 and x < 140:
             TX_data_py2(serial_port, 15)
              
-        elif x>=140 and x<=150: # orginal 140 ~ 180
+        elif x>=140 and x<=180: # orginal 140 ~ 180
             print("Center")
             break 
             

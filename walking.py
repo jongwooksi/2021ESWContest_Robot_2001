@@ -99,9 +99,11 @@ def loop(serial_port):
     
     
     while True:
-        wait_receiving_exit()
+        #wait_receiving_exit()
         
         _,frame = cap.read()
+        if not count_frame():
+            continue
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
         lower_yellow = np.array([10, 100, 100])
