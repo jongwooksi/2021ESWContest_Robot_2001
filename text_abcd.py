@@ -297,37 +297,49 @@ def loop(serial_port):
             f3.write(color)
             if area == "dangerous":
                 f2.write(text)
+                break
+                
             if direction == "right":
                 TX_data_py2(serial_port, 19)
             elif direction == "left":
                 TX_data_py2(serial_port, 25)
+                
             break
         elif text == "B":
             f3.write(color)
             if area == "dangerous":
                 f2.write(text)
+                break
+                
             if direction == "right":
                 TX_data_py2(serial_port, 19)
             elif direction == "left":
                 TX_data_py2(serial_port, 25)
+                
             break
         elif text == "C":
             f3.write(color)
             if area == "dangerous":
                 f2.write(text)
+                break
+                
             if direction == "right":
                 TX_data_py2(serial_port, 19)
             elif direction == "left":
                 TX_data_py2(serial_port, 25)
+                
             break
         elif text == "D":
             f3.write(color)
             if area == "dangerous":
                 f2.write(text)
+                break
+                
             if direction == "right":
                 TX_data_py2(serial_port, 19)
             elif direction == "left":
                 TX_data_py2(serial_port, 25)
+                
             break
         
         

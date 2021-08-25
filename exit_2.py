@@ -48,6 +48,15 @@ def loop(serial_port):
     TX_data_py2(serial_port, 31)
     time.sleep(2)
     
+    f = open("./data/arrow.txt", 'r')
+    arrow = f.readline()
+    if arrow == 'left':
+        TX_data_py2(serial_port, 49)
+        time.sleep(1)
+    elif arrow == 'right':
+        TX_data_py2(serial_port, 48)
+        time.sleep(1)
+        
     cap = cv2.VideoCapture(0)
 
     cap.set(3, W_View_size)
@@ -55,8 +64,7 @@ def loop(serial_port):
     cap.set(5, FPS)  
 
     #TX_data_py2(serial_port, 29)
-    f = open("./data/arrow.txt", 'r')
-    arrow = f.readline()
+    
     '''
     for i in range(7):
         _,frame = cap.read()
@@ -67,6 +75,8 @@ def loop(serial_port):
             TX_data_py2(serial_port, 59)
             time.sleep(2.5)
     '''
+    
+        
     while True:
         #wait_receiving_exit()
         
@@ -82,18 +92,18 @@ def loop(serial_port):
         black_count = len(hsv[np.where(black_mask != 0)])
         print("black count", black_count)
         
-        cv2.imshow("black_mask", black_mask)
-        cv2.waitKey(1)
+        #cv2.imshow("black_mask", black_mask)
+        #cv2.waitKey(1)
         
        
        
-        cv2.imshow("img", frame)
-        cv2.waitKey(1)
+        #cv2.imshow("img", frame)
+        #cv2.waitKey(1)
         
         if arrow == 'left':
-            TX_data_py2(serial_port, 58) 
-            time.sleep(2.5)
-            if black_count >= 5000: #get_distance() >= 2
+            print("arrow : ", arrow)
+            TX_data_py2(serial_port, 58)
+            if black_count >= 7000: #get_distance() >= 2
                 for i in range(6):
                     TX_data_py2(serial_port, 7)
                     time.sleep(1)
@@ -103,9 +113,9 @@ def loop(serial_port):
                 break
                 
         elif arrow == 'right':
-            TX_data_py2(serial_port, 59) 
-            time.sleep(2.5)
-            if black_count >= 5000: #get_distance() >= 2
+            print("arrow : ", arrow)
+            TX_data_py2(serial_port, 59)
+            if black_count >= 7000: #get_distance() >= 2
                 for i in range(6):
                     TX_data_py2(serial_port, 9) 
                     time.sleep(1)
@@ -113,8 +123,6 @@ def loop(serial_port):
                 time.sleep(1)
                 finish() 
                 break
-        
-        time.sleep(1) 
         
 
     cap.release()
