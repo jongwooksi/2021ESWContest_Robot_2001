@@ -97,20 +97,22 @@ def loop(serial_port):
         #cv2.imshow('canny', canny_img)
         #cv2.waitKey(1)
         hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20)
-        print(x)
-        #cv2.imshow('hough', hough_img)
-        #cv2.waitKey(1)
         
+        cv2.imshow('hough', hough_img)
+        cv2.waitKey(1)
+        print("x", x)
+        print("y", y)
+        print("gradient", gradient)
         
             
         if gradient>0 and gradient< 2.5:
             TX_data_py2(serial_port, 7)
-            time.sleep(2)
+            time.sleep(5)
             continue
         
         elif gradient<0 and gradient>-2.5:
             TX_data_py2(serial_port, 9) 
-            time.sleep(2) 
+            time.sleep(5) 
             continue
            
         if  x == -1:
@@ -118,20 +120,17 @@ def loop(serial_port):
             
         if  x > 185:
             TX_data_py2(serial_port, 20)
-            time.sleep(2) 
+            time.sleep(5) 
           
                 
         elif x>10 and x < 135:
             TX_data_py2(serial_port, 15)
-            time.sleep(2)  
+            time.sleep(5)  
            
         
         elif x>=135 and x<=185:
             TX_data_py2(serial_port, 47)  
-            time.sleep(2) 
-            
-        
-        print(x, gradient)   
+            time.sleep(5) 
            
         #wait_receiving_exit() 
     

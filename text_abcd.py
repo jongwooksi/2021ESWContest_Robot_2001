@@ -147,7 +147,7 @@ def textRecog(textimage):
             text = "A"
         elif text_image == "BB":
             text = "B"
-        elif text_image == "CC":
+        elif text_image == "CC" or text_image == "cc":
             text = "C"
         elif text_image == "DD":
             text = "D"
@@ -233,7 +233,7 @@ def loop(serial_port):
     f_dir.close()
     
     
-    f2 = open("./data/result.txt","w")
+    f2 = open("./data/result.txt","a")
     f3 = open("./data/color.txt","w")
     
     while True:

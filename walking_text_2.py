@@ -124,10 +124,17 @@ def loop(serial_port):
         cv2.waitKey(1)
         #print(gradient)
         print(x)
+        #print(y)
+        #print(gradient)
         
         if  x == -1:
             #TX_data_py2(serial_port, 30)
             break
+            
+        if gradient >= -0.5 and gradient <= 0.5:
+            TX_data_py2(serial_port,3)
+            time.sleep(0.1)
+            continue
                 
         if  x > 180:
             TX_data_py2(serial_port, 20)

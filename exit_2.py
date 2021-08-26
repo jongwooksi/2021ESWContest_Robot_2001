@@ -13,49 +13,54 @@ def finish():
     text = f.readline()
     print(text)
 	
-    for i in range(2):    
-       
+    for i in range(len(text)):    
         print(text[i])
         if text[i] == "A":
-            
             TX_data_py2(serial_port, 39)
             
         elif text[i] == "B":
-            
             TX_data_py2(serial_port, 40)
             
         elif text[i] == "C":
-            
             TX_data_py2(serial_port, 41)
             
         elif text[i] == "D":
-            
             TX_data_py2(serial_port, 42)
-           
-        
         time.sleep(2)
         
 def loop(serial_port):
     
     W_View_size = 320
     H_View_size = int(W_View_size / 1.333)
-
+    
     FPS         = 1  #PI CAMERA: 320 x 240 = MAX 90
     TX_data_py2(serial_port, 21)
     time.sleep(1)
     TX_data_py2(serial_port, 43)
     time.sleep(1)
     TX_data_py2(serial_port, 31)
-    time.sleep(2)
+    time.sleep(1)
+    
+    lower_black = np.array([0, 0, 0])
+    upper_black = np.array([180, 255, 30])
     
     f = open("./data/arrow.txt", 'r')
     arrow = f.readline()
+    f.close()
+    
     if arrow == 'left':
         TX_data_py2(serial_port, 49)
-        time.sleep(1)
+        time.sleep(5)
+        for i in range(5):
+            TX_data_py2(serial_port, 58)
+            time.sleep(1)
     elif arrow == 'right':
         TX_data_py2(serial_port, 48)
-        time.sleep(1)
+        time.sleep(5)
+        for i in range(5):
+            TX_data_py2(serial_port, 59)
+            time.sleep(1)
+        
         
     cap = cv2.VideoCapture(0)
 
@@ -65,43 +70,18 @@ def loop(serial_port):
 
     #TX_data_py2(serial_port, 29)
     
-    '''
-    for i in range(7):
-        _,frame = cap.read()
-        if arrow == 'left':
-            TX_data_py2(serial_port,58)
-            time.sleep(2.5)
-        elif arrow == 'right':
-            TX_data_py2(serial_port, 59)
-            time.sleep(2.5)
-    '''
     
-        
+    
     while True:
-        #wait_receiving_exit()
-        
         _,frame = cap.read()
         if not count_frame_333():
             continue
-        img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        
-        lower_black = np.array([0, 0, 0])
-        upper_black = np.array([180, 255, 30])
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         black_mask = cv2.inRange(hsv, lower_black, upper_black)
         black_count = len(hsv[np.where(black_mask != 0)])
         print("black count", black_count)
         
-        #cv2.imshow("black_mask", black_mask)
-        #cv2.waitKey(1)
-        
-       
-       
-        #cv2.imshow("img", frame)
-        #cv2.waitKey(1)
-        
         if arrow == 'left':
-            print("arrow : ", arrow)
             TX_data_py2(serial_port, 58)
             if black_count >= 7000: #get_distance() >= 2
                 for i in range(6):
@@ -111,9 +91,7 @@ def loop(serial_port):
                 time.sleep(1)
                 finish()
                 break
-                
         elif arrow == 'right':
-            print("arrow : ", arrow)
             TX_data_py2(serial_port, 59)
             if black_count >= 7000: #get_distance() >= 2
                 for i in range(6):

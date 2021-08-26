@@ -41,6 +41,10 @@ def preprocessing(frame):
     return [-1, -1, -1, -1]        
 
 def loop(serial_port):
+    TX_data_py2(serial_port, 21) # Head Down 60
+    time.sleep(1)
+    TX_data_py2(serial_port, 31)
+    
     W_View_size = 320
     H_View_size = int(W_View_size / 1.333)
 
@@ -72,10 +76,7 @@ def loop(serial_port):
     lower_green = np.array([35, 30, 30])
     upper_green = np.array([100, 255, 255])
     
-    
-    TX_data_py2(serial_port, 21) # Head Down 60
-    time.sleep(0.5)
-    TX_data_py2(serial_port, 31)
+
     flag = False
     milk_flag = False
     drop_flag = False
@@ -167,27 +168,6 @@ def loop(serial_port):
                     else:
                         TX_data_py2(serial_port, 15)
                         straight_step += 1
-                    '''
-                if  loc > 180:
-                    TX_data_py2(serial_port, 20)
-                    
-                
-                        
-                elif loc>10 and loc < 140:
-                    TX_data_py2(serial_port, 15)
-                    
-             
-                
-                elif loc>=140 and loc<=180:
-                    stage = 1
-                    TX_data_py2(serial_port, 29) #Head Down 80   
-                    continue
-                    
-                elif loc < 0 :
-                    TX_data_py2(serial_port, 47)
-                
-            '''
-            
                     
             elif stage == 1:
                 print(y + h)
