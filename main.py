@@ -2,7 +2,7 @@ import os
 import time
 import subprocess
 
-subprocess.run("python3 text_ewsn.py")
+subprocess.run(["python3 text_ewsn.py"], shell=True)
 subprocess.run(['python3 walking.py'], shell=True)
 subprocess.run(["python3 arrow.py"], shell=True)
 subprocess.run(["python3 walking_text_2.py"], shell=True)

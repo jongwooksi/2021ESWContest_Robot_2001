@@ -77,25 +77,25 @@ def textRecog(textimage):
     textimage = cv2.cvtColor(textimage, cv2.COLOR_BGR2GRAY)
     
     result = np.zeros((128, 128), np.uint8) + 255
-    result[5:59, 5:59] = textimage
-    result[5:59, 59:113] = textimage
-
+    result[45:99, 25:79] = textimage
+    result[45:99, 79:128] = textimage[:,5:]
+    
     cv2.imshow("canny", result)
     cv2.waitKey(1)
 
     text_image = pytesseract.image_to_string(result)
-    print("text "+text_image)
+    
     text_image.replace(" ","")
     text_image.rstrip() 
-    text_image = text_image[0:2]
-    
-    if text_image == "AA":
+    text_image = text_image[0:1]
+    print("text "+text_image)
+    if text_image == "A":
         text = "A"
-    elif text_image == "BB":
+    elif text_image == "B":
         text = "B"
-    elif text_image == "CC":
+    elif text_image == "C" or text_image == "c":
         text = "C"
-    elif text_image == "DD":
+    elif text_image == "D":
         text = "D"
     else :
         text = "error"
@@ -103,55 +103,82 @@ def textRecog(textimage):
     if text == "error":
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
         textimage = cv2.dilate(textimage, kernel)
-
+        textimage = cv2.dilate(textimage, kernel)
         result = np.zeros((128, 128), np.uint8) + 255
-        result[5:59, 5:59] = textimage
-        result[5:59, 59:113] = textimage
-
+        result[45:99, 25:79] = textimage
+        result[45:99, 79:128] = textimage[:,5:]
+        
         cv2.imshow("canny", result)
         cv2.waitKey(1)
 
         text_image = pytesseract.image_to_string(result, lang='eng')
         text_image.replace(" ","")
         text_image.rstrip() 
-        text_image = text_image[0:2]
-        
-        if text_image == "AA":
+        text_image = text_image[0:1]
+        print("text "+text_image)
+        if text_image == "A":
             text = "A"
-        elif text_image == "BB":
+        elif text_image == "B":
             text = "B"
-        elif text_image == "CC":
+        elif text_image == "C" or text_image == "c":
             text = "C"
-        elif text_image == "DD":
+        elif text_image == "D":
             text = "D"
-        else:
+        else :
             text = "error"
+            
+    if text == "error":
+        kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
+        textimage = cv2.dilate(textimage, kernel)
+      
+        result = np.zeros((128, 128), np.uint8) + 255
+        result[45:99, 25:79] = textimage
+        result[45:99, 79:128] = textimage[:,5:]
+        
+        cv2.imshow("canny", result)
+        cv2.waitKey(1)
 
+        text_image = pytesseract.image_to_string(result, lang='eng')
+        text_image.replace(" ","")
+        text_image.rstrip() 
+        text_image = text_image[0:1]
+        print("text "+text_image)
+        if text_image == "A":
+            text = "A"
+        elif text_image == "B":
+            text = "B"
+        elif text_image == "C" or text_image == "c":
+            text = "C"
+        elif text_image == "D":
+            text = "D"
+        else :
+            text = "error"
+            
     if text == "error":
         kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
         textimage = cv2.erode(textimage, kernel)
-
+       
         result = np.zeros((128, 128), np.uint8) + 255
-        result[5:59, 5:59] = textimage
-        result[5:59, 59:113] = textimage
-
+        result[45:99, 25:79] = textimage
+        result[45:99, 79:128] = textimage[:,5:]
+    
         cv2.imshow("canny", result)
         cv2.waitKey(1)
 
         text_image = pytesseract.image_to_string(result, lang='eng')
         text_image.replace(" ","")
         text_image.rstrip() 
-        text_image = text_image[0:2]
-        
-        if text_image == "AA":
+        text_image = text_image[0:1]
+        print("text "+text_image)
+        if text_image == "A":
             text = "A"
-        elif text_image == "BB":
+        elif text_image == "B":
             text = "B"
-        elif text_image == "CC" or text_image == "cc":
+        elif text_image == "C" or text_image == "c":
             text = "C"
-        elif text_image == "DD":
+        elif text_image == "D":
             text = "D"
-        else:
+        else :
             text = "error"
 
     return text

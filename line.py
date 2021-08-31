@@ -67,13 +67,16 @@ def loop(serial_port):
     time.sleep(1)
     TX_data_py2(serial_port, 29)
     time.sleep(1)
+    corner_flag = True
+    dir_flag = True
+    turn_flag = True
     
     cap = cv2.VideoCapture(0)
 
     cap.set(3, W_View_size)
     cap.set(4, H_View_size)
     cap.set(5, FPS)  
-
+    direction = ""
     while True:
        
         _,frame = cap.read()
@@ -82,10 +85,31 @@ def loop(serial_port):
         #cv2.imshow('original', frame)
         #cv2.waitKey(1)
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        width_cut = W_View_size // 2
+        left_image = img[:, :width_cut]
+        right_image = img[:, width_cut:]
         
         lower_yellow = np.array([10, 80, 100])
         upper_yellow = np.array([60, 255, 255])
         mask = cv2.inRange(img, lower_yellow, upper_yellow)
+        left_mask = cv2.inRange(left_image, lower_yellow, upper_yellow)
+        right_mask = cv2.inRange(right_image, lower_yellow, upper_yellow)
+        cv2.imshow("left mask", left_mask)
+        cv2.waitKey(1)
+        cv2.imshow("right mask", right_mask)
+        cv2.waitKey(1)
+        
+        left_count = len(left_image[np.where(left_mask != 0)])
+        right_count = len(right_image[np.where(right_mask != 0)])
+        print("left",left_count)
+        print("right",right_count)
+        if dir_flag == True and left_count > right_count:
+            direction = "left"
+            dir_flag == False
+        elif dir_flag == True and left_count < right_count:
+            direction = "right"
+            dir_flag == False
+            
         image_result = cv2.bitwise_and(frame, frame,mask = mask)
         
         gray_img = grayscale(image_result)
@@ -100,38 +124,72 @@ def loop(serial_port):
         
         cv2.imshow('hough', hough_img)
         cv2.waitKey(1)
-        print("x", x)
-        print("y", y)
+        #print("x", x)
+        #print("y", y)
         print("gradient", gradient)
         
-            
+        if corner_flag == True and gradient > -0.5 and gradient <0.5:
+            TX_data_py2(serial_port, 47)
+            time.sleep(1)
+            TX_data_py2(serial_port, 47)
+            time.sleep(1)
+            corner_flag = False
+            continue
+            '''
         if gradient>0 and gradient< 2.5:
             TX_data_py2(serial_port, 7)
-            time.sleep(5)
+            time.sleep(1)
             continue
         
         elif gradient<0 and gradient>-2.5:
             TX_data_py2(serial_port, 9) 
-            time.sleep(5) 
+            time.sleep(1) 
             continue
-           
+            '''
+        if gradient == 0 and turn_flag == True:
+            if direction == "left":
+                for i in range(4):
+                    TX_data_py2(serial_port, 7)
+                    time.sleep(0.7)
+                time.sleep(1.3)
+                TX_data_py2(serial_port, 20)
+            elif direction == "right":
+                for i in range(4):
+                    TX_data_py2(serial_port, 9)
+                    time.sleep(1)
+                time.sleep(1.3)
+                TX_data_py2(serial_port, 15)
+            turn_flag = False
+            continue
+        if turn_flag == False:
+            if direction == "left":
+                for i in range(4):
+                    TX_data_py2(serial_port, 47)
+                    time.sleep(1)
+            elif direction == "right":
+                for i in range(2):
+                    TX_data_py2(serial_port, 47)
+                    time.sleep(1)
+            break
+            
         if  x == -1:
             continue
             
         if  x > 185:
             TX_data_py2(serial_port, 20)
-            time.sleep(5) 
+            time.sleep(1) 
           
                 
         elif x>10 and x < 135:
             TX_data_py2(serial_port, 15)
-            time.sleep(5)  
+            time.sleep(1)  
            
         
         elif x>=135 and x<=185:
             TX_data_py2(serial_port, 47)  
-            time.sleep(5) 
-           
+            time.sleep(1) 
+             
+        
         #wait_receiving_exit() 
     
     '''
@@ -209,7 +267,7 @@ if __name__ == '__main__':
     serial_t.start()
     serial_d.start()
     
-    serial_t.join()
+    #serial_t.join()
     serial_d.join()
     print("end")
         

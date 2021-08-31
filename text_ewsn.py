@@ -24,8 +24,8 @@ def textImageProcessing(img, frame):
     
     img = cv2.erode(img, kernel)
     
-    #cv2.imshow("daa", img)
-    #key = cv2.waitKey(1)
+    cv2.imshow("daa", img)
+    key = cv2.waitKey(1)
 
     contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -47,7 +47,8 @@ def textImageProcessing(img, frame):
                 bottom = list(tuple(c[c[:, :, 1].argmax()][0]))
 
                 x, y, w, h = cv2.boundingRect(c)
-
+              
+                
                 distance_top = ((x - top[0])**2 + (y - top[1]) ** 2) ** 0.5
 
                 distance_bottom = (((x+w) - bottom[0]) ** 2 + ((y+h) - bottom[1]) ** 2) ** 0.5
@@ -79,8 +80,8 @@ def textRecog(textimage):
     textimage = cv2.dilate(textimage, kernel)
     
     result = np.zeros((128, 128), np.uint8) + 255
-    result[5:59, 5:59] = textimage
-    result[5:59, 59:113] = textimage
+    result[45:99, 25:79] = textimage
+    result[45:99, 79:123] = textimage[:,10:]
     
     
     cv2.imshow("aa", result)
@@ -89,15 +90,15 @@ def textRecog(textimage):
     text_image = pytesseract.image_to_string(result)
     text_image.replace(" ","")
     text_image.rstrip() 
-    text_image = text_image[0:2]
+    text_image = text_image[0:1]
     print(text_image)
-    if text_image == "EE":
+    if text_image == "E":
         text = "E"
-    elif text_image == "WW":
+    elif text_image == "W":
         text = "W"
-    elif text_image == "SS":
+    elif text_image == "S" or text_image == "Y":
         text = "S"
-    elif text_image == "NN":
+    elif text_image == "N":
         text = "N"
     else :
         text = "error"
@@ -107,22 +108,23 @@ def textRecog(textimage):
         textimage = cv2.dilate(textimage, kernel)
 
         result = np.zeros((128, 128), np.uint8) + 255
-        result[5:59, 5:59] = textimage
-        result[5:59, 59:113] = textimage
+        result[45:99, 25:79] = textimage
+        result[45:99, 79:123] = textimage[:,10:]
+    
 
     
         text_image = pytesseract.image_to_string(result, lang='eng')
         text_image.replace(" ","")
         text_image.rstrip() 
-        text_image = text_image[0:2]
-        
-        if text_image == "EE":
+        text_image = text_image[0:1]
+        print(text_image)
+        if text_image == "E":
             text = "E"
-        elif text_image == "WW":
+        elif text_image == "W":
             text = "W"
-        elif text_image == "SS":
+        elif text_image == "S" or text_image == "Y" :
             text = "S"
-        elif text_image == "NN":
+        elif text_image == "N":
             text = "N"
         else:
             text = "error"
@@ -132,24 +134,25 @@ def textRecog(textimage):
         textimage = cv2.erode(textimage, kernel)
 
         result = np.zeros((128, 128), np.uint8) + 255
-        result[5:59, 5:59] = textimage
-        result[5:59, 59:113] = textimage
-
+        result[45:99, 25:79] = textimage
+        result[45:99, 79:123] = textimage[:,10:]
+    
+        print(text_image)
         #cv2.imshow("canny", result)
         #key = cv2.waitKey(1)
 
         text_image = pytesseract.image_to_string(result, lang='eng')
         text_image.replace(" ","")
         text_image.rstrip() 
-        text_image = text_image[0:2]
+        text_image = text_image[0:1]
         
-        if text_image == "EE":
+        if text_image == "E":
             text = "E"
-        elif text_image == "WW":
+        elif text_image == "W":
             text = "W"
-        elif text_image == "SS":
+        elif text_image == "S" or text_image == "Y" :
             text = "S"
-        elif text_image == "NN":
+        elif text_image == "N":
             text = "N"
         else:
             text = "error"
@@ -161,7 +164,7 @@ def Recog(textimage, img_color):
 
    
     lower = np.array([0, 0, 0])
-    upper = np.array([180, 255, 50])
+    upper = np.array([180, 255, 40])
     mask = cv2.inRange(img_hsv, lower, upper)
 
     hsv = img_hsv.copy()
@@ -197,14 +200,15 @@ def loop(serial_port):
     f = open("./data/start.txt","w")
 
     while True:
-        wait_receiving_exit()
+        #wait_receiving_exit()
         _,frame = cap.read()
+        frame = frame[100:,:]
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         dst = img.copy()
 
         points, frame = textImageProcessing(img, frame)
 
-        #cv2.imshow("Frame", frame)
+        cv2.imshow("Frame", frame)
         key = cv2.waitKey(1)
 
         if key == 27:
