@@ -30,7 +30,7 @@ def preprocessing(frame):
         
         area = point[2] * point[3]
         
-        if area > 1000:
+        if area > 600:
         
             cv2.rectangle(frame, (point[0], point[1]), (point[0] + point[2], point[1]+point[3]), (0, 255, 0), 1)  
             #cv2.imshow('img', frame)
@@ -48,7 +48,7 @@ def loop(serial_port):
     W_View_size = 320
     H_View_size = int(W_View_size / 1.333)
 
-    FPS         = 5  #PI CAMERA: 320 x 240 = MAX 90
+    FPS         = 5 #PI CAMERA: 320 x 240 = MAX 90
 
 
     cap = cv2.VideoCapture(0)
@@ -110,6 +110,8 @@ def loop(serial_port):
             #wait_receiving_exit()
     
             _,frame = cap.read()
+            
+                
             if not count_frame_333():
                 continue
             img_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -252,10 +254,21 @@ def loop(serial_port):
     if area == "safe": # 안전지역
         first_flag = True
         straight_step = 0
+        TX_data_py2(serial_port, 32)
+        time.sleep(1)
+        TX_data_py2(serial_port, 32)
+        time.sleep(1)
+        TX_data_py2(serial_port, 32)
+        time.sleep(4)
+       
         while True:
             _,frame = cap.read()
+            
             if not count_frame_333():
                 continue
+                
+            cv2.imshow("frame", frame)
+            cv2.waitKey(1)
             img_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             
             if stage < 3:
@@ -284,13 +297,19 @@ def loop(serial_port):
                 
             if stage == 0:
                 if first_flag == True:
+                    TX_data_py2(serial_port, 47)
+                    time.sleep(1)
+                    TX_data_py2(serial_port, 47)
+                    time.sleep(1)
+                    TX_data_py2(serial_port, 47)
+                    time.sleep(1)
                     print("x location ",x)
-                    if x > 160:
+                    if x >= 160:
                         safeloc = "left"
                         for i in range(2):
                             TX_data_py2(serial_port, 9)
                             time.sleep(1)
-                    elif x < 160:
+                    elif x < 160 and x > 0:
                         safeloc = "right"
                         for i in range(2):
                             TX_data_py2(serial_port, 7)
@@ -299,15 +318,17 @@ def loop(serial_port):
                     
                 if  loc > 180:
                     TX_data_py2(serial_port, 20)
+                    time.sleep(1)
                 elif loc>10 and loc < 140:
                     TX_data_py2(serial_port, 15)
+                    time.sleep(1)
                 elif loc>=140 and loc<=180:
                     stage = 1
                     TX_data_py2(serial_port, 29) #Head Down 80   
                     
             
             elif stage == 1:
-                 #time.sleep(0.2)
+               
                 print(y + h)
                 print(flagcounter)
                 if flagcounter == 0:
@@ -351,8 +372,8 @@ def loop(serial_port):
                 stage = 4
                 
             elif stage == 4:
-                dan_mask = cv2.inRange(img_hsv, lower_green, upper_green)
-                safe_count = len(img_hsv[np.where(dan_mask != 0)])
+                dan_mask = cv2.inRange(img_hsv[200:,:], lower_green, upper_green)
+                safe_count = len(img_hsv[200:,:][np.where(dan_mask != 0)])
                 
                 if safeloc == "right":
                     TX_data_py2(serial_port, 52) #Right
@@ -364,13 +385,14 @@ def loop(serial_port):
                 time.sleep(2)
                 print(safe_count)
                 print("area count : ", areacount)
-                cv2.imshow("frame", dan_mask)
+                cv2.imshow("frame2", dan_mask)
                 cv2.waitKey(1)
-                if safe_count > 18000: # safe_count > 8000 and safe_count < 18000
+                if safe_count > 4000: # safe_count > 8000 and safe_count < 18000
                     areacount += 1
                     
-                if areacount > 3:
+                if areacount >= 3:
                     TX_data_py2(serial_port, 53)
+                    time.sleep(2)
                     stage = 5
                 continue
                     
@@ -381,17 +403,17 @@ def loop(serial_port):
                     if safeloc == "right":
                         print("LOCATION", safeloc)
                         for i in range(step*2):
-                            TX_data_py2(serial_port, 50) #Left
+                            TX_data_py2(serial_port, 65) #Left
                             time.sleep(1)
                         TX_data_py2(serial_port, 48)
                         time.sleep(1)
                         for i in range(straight_step):
-                            TX_data_py2(serial_port, 50)
+                            TX_data_py2(serial_port, 65)
                             time.sleep(1)
                     elif safeloc == "left":
                         print("LOCATION", safeloc)
                         for i in range(int(step*1.5)):
-                            TX_data_py2(serial_port, 52) #Right
+                            TX_data_py2(serial_port, 66) #Right
                             time.sleep(1)
                         for i in range(2):
                             TX_data_py2(serial_port, 49)
@@ -403,7 +425,7 @@ def loop(serial_port):
                     if safeloc == "right":
                         print("LOCATION", safeloc)
                         for i in range(step*2):
-                            TX_data_py2(serial_port, 50) #Left
+                            TX_data_py2(serial_port, 65) #Left
                             time.sleep(1)
                         for i in range(2):
                             TX_data_py2(serial_port, 48)
@@ -414,12 +436,12 @@ def loop(serial_port):
                     elif safeloc == "left":
                         print("LOCATION", safeloc)
                         for i in range(int(step*1.5)):
-                            TX_data_py2(serial_port, 52) #Right
+                            TX_data_py2(serial_port, 66) #Right
                             time.sleep(1)
                         TX_data_py2(serial_port, 49)
                         time.sleep(1)
                         for i in range(straight_step):
-                            TX_data_py2(serial_port, 52)
+                            TX_data_py2(serial_port, 66)
                             time.sleep(1)
                 
 

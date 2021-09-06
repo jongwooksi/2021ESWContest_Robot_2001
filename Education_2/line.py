@@ -89,8 +89,8 @@ def loop(serial_port):
         left_image = img[:, :width_cut]
         right_image = img[:, width_cut:]
         
-        lower_yellow = np.array([10, 80, 100])
-        upper_yellow = np.array([60, 255, 255])
+        lower_yellow = np.array([10, 70, 70])
+        upper_yellow = np.array([80, 255, 255])
         mask = cv2.inRange(img, lower_yellow, upper_yellow)
         left_mask = cv2.inRange(left_image, lower_yellow, upper_yellow)
         right_mask = cv2.inRange(right_image, lower_yellow, upper_yellow)
@@ -99,16 +99,17 @@ def loop(serial_port):
         cv2.imshow("right mask", right_mask)
         cv2.waitKey(1)
         
-        left_count = len(left_image[np.where(left_mask != 0)])
-        right_count = len(right_image[np.where(right_mask != 0)])
-        print("left",left_count)
-        print("right",right_count)
-        if dir_flag == True and left_count > right_count:
-            direction = "left"
-            dir_flag == False
-        elif dir_flag == True and left_count < right_count:
-            direction = "right"
-            dir_flag == False
+        if dir_flag is True:
+            left_count = len(left_image[np.where(left_mask != 0)])
+            right_count = len(right_image[np.where(right_mask != 0)])
+            print("left",left_count)
+            print("right",right_count)
+            if dir_flag == True and left_count > right_count:
+                direction = "left"
+                dir_flag = False
+            elif dir_flag == True and left_count < right_count:
+                direction = "right"
+                dir_flag = False
             
         image_result = cv2.bitwise_and(frame, frame,mask = mask)
         
@@ -157,7 +158,7 @@ def loop(serial_port):
                 for i in range(4):
                     TX_data_py2(serial_port, 9)
                     time.sleep(1)
-                time.sleep(1.3)
+                time.sleep(1)
                 TX_data_py2(serial_port, 15)
             turn_flag = False
             continue
@@ -167,7 +168,7 @@ def loop(serial_port):
                     TX_data_py2(serial_port, 47)
                     time.sleep(1)
             elif direction == "right":
-                for i in range(2):
+                for i in range(3):
                     TX_data_py2(serial_port, 47)
                     time.sleep(1)
             break
