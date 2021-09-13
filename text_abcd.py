@@ -73,12 +73,69 @@ def textImageProcessing(img, frame):
 
     return [[-1,-1], [-1,-1], [-1,-1], [-1,-1]], frame
 
-def textRecog(textimage):
+cnt = 0
+
+def textRecog(template):
+
+    img = cv2.imread('abcd.jpg')
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+     
+    th, tw = template.shape[:2]
+
+    methods = ['cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF_NORMED']
+
+    count = [0,0,0,0] 
+
+
+    for i, method_name in enumerate(methods):
+        img_draw = img.copy()
+        method = eval(method_name)
+        res = cv2.matchTemplate(img, template, method)
+        
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+      
+        if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+            top_left = min_loc
+            match_val = min_val
+        else:
+            top_left = max_loc
+            match_val = max_val
+    
+        bottom_right = (top_left[0] + tw, top_left[1] + th)
+        #print("크기 : ",top_left, bottom_right)
+        if top_left[1] >= 0 and top_left[1] <= 162 and bottom_right[1] >= 0 and bottom_right[1] <= 163:
+            count[0] += 1
+        elif top_left[1] >= 163 and top_left[1] <= 359 and bottom_right[1] >= 163 and bottom_right[1] <= 359:
+            count[1] += 1
+        elif top_left[1] >= 360 and top_left[1] <= 557 and bottom_right[1] >= 360 and bottom_right[1] <= 557:
+            count[2] += 1
+        elif top_left[1] >= 558 and top_left[1] <= 720 and bottom_right[1] >= 558 and bottom_right[1] <= 720:
+            count[3] += 1
+        
+    max_index = count.index(max(count))
+    
+    if max_index == 0:
+        text = "A"
+    elif max_index == 1:
+        text = "B"
+    elif max_index == 2:
+        text = "C"
+    elif max_index == 3:
+        text = "D"
+
+    '''
     textimage = cv2.cvtColor(textimage, cv2.COLOR_BGR2GRAY)
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (5, 5))
+
     
     result = np.zeros((128, 128), np.uint8) + 255
+    
     result[45:99, 25:79] = textimage
     result[45:99, 79:128] = textimage[:,5:]
+    
+    
+    result[37:91, 37:91] = textimage
+
     
     cv2.imshow("canny", result)
     cv2.waitKey(1)
@@ -180,10 +237,11 @@ def textRecog(textimage):
             text = "D"
         else :
             text = "error"
-
+        '''
+        
     return text
 
-def Recog(textimage, img_color):
+def Recog(img_color):
     img_hsv = cv2.cvtColor(img_color, cv2.COLOR_BGR2HSV)
     cv2.imshow('ss',img_hsv)
     cv2.waitKey(1)
@@ -197,7 +255,7 @@ def Recog(textimage, img_color):
 
     red_mask = mask0 + mask1
 
-    lower_blue = np.array([100, 50, 50])
+    lower_blue = np.array([100, 50, 40])
     upper_blue = np.array([140, 255, 255])
     blue_mask = cv2.inRange(img_hsv, lower_blue, upper_blue)
 
@@ -214,18 +272,19 @@ def Recog(textimage, img_color):
         color = "red"
         red_hsv[np.where(red_mask != 0)] = 0
         red_hsv[np.where(red_mask == 0)] = 255
-        text = textRecog(red_hsv)
+        #text = textRecog(red_hsv)
 
     else:
         color = "blue"
         blue_hsv[np.where(blue_mask != 0)] = 0
         blue_hsv[np.where(blue_mask == 0)] = 255
-        text = textRecog(blue_hsv)
+        #text = textRecog(blue_hsv)
 
 
-    return text, color
+    return color
 
 def loop(serial_port):
+    global cnt
     W_View_size = 320
     H_View_size = int(W_View_size / 1.333)
 
@@ -244,7 +303,7 @@ def loop(serial_port):
     
     TX_data_py2(serial_port, 21)
     TX_data_py2(serial_port, 43)
-    TX_data_py2(serial_port, 54)
+    #TX_data_py2(serial_port, 54)
     
     
     time.sleep(1)
@@ -305,14 +364,15 @@ def loop(serial_port):
         textimage = cv2.warpPerspective(dst, matrix, (128, 128))
 
         textimage = textimage[12:110, 12:110]
-        textimage = cv2.resize(textimage, (54, 54))
+        textimage = cv2.resize(textimage, (128, 128))
 
+        text = textRecog(textimage)
         
         img_color =  cv2.warpPerspective(frame, matrix, (128, 128))
         img_color = img_color[12:110, 12:110]
         img_color = cv2.resize(img_color, (54, 54))
 
-        text, color = Recog(textimage, img_color)
+        color = Recog(img_color)
 
         print("text : {} \ncolor : {}".format(text, color))
         
