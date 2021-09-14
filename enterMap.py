@@ -237,9 +237,9 @@ def loop(serial_port):
         textimage = cv2.warpPerspective(dst, matrix, (128, 128))
 
         textimage = textimage[8:110, 8:110]
-        textimage = cv2.resize(textimage, (54, 54))
+        textimage = cv2.resize(textimage, (128, 128))
       
-
+        
         img_color =  cv2.warpPerspective(frame, matrix, (128, 128))
         img_color = img_color[8:110, 8:110]
         img_color = cv2.resize(img_color, (54, 54))
@@ -290,8 +290,9 @@ def loop(serial_port):
         
         hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20 )
         result = weighted_img(hough_img, frame)
-        
-
+        cv2.imshow('img', result)
+        cv2.waitKey(1)
+        continue
         if get_distance() >= 2:
             f = open("./data/start.txt", 'r')
             text = f.readline()
@@ -323,15 +324,7 @@ def loop(serial_port):
             break
         
         
-        if gradient>0 and gradient< 2:
-            TX_data_py2(serial_port, 4)
-            time.sleep(1)
-            continue
-        
-        elif gradient<0 and gradient>-2:
-            TX_data_py2(serial_port, 6) 
-            time.sleep(1) 
-            continue
+       
            
         if  x == -1:
             continue
@@ -354,17 +347,20 @@ def loop(serial_port):
         print(x)
         time.sleep(1) 
         
-    time.sleep(3)    
+    time.sleep(3)  
+    
+    centerFlag = 0
+      
     while True:
         _,frame = cap.read()
         if not count_frame_333():
             continue
-        img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        img = cv2.cvtColor(frame[160:], cv2.COLOR_BGR2HSV)
         
         lower_yellow = np.array([10, 100, 100])
         upper_yellow = np.array([50, 255, 255])
         mask = cv2.inRange(img, lower_yellow, upper_yellow)
-        image_result = cv2.bitwise_and(frame, frame,mask = mask)
+        image_result = cv2.bitwise_and(frame[160:], frame[160:],mask = mask)
 
         gray_img = grayscale(image_result)
         blur_img = gaussian_blur(gray_img, 3)
@@ -372,25 +368,43 @@ def loop(serial_port):
         
         
         hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20 )
-        result = weighted_img(hough_img, frame)
+        result = weighted_img(hough_img, frame[160:])
         
-
+        cv2.imshow('img', frame[160:])
+        cv2.waitKey(1)
+        
         if  x == -1: 
-            print("No Line")
-            break
+            TX_data_py2(serial_port, 15)
+            time.sleep(1)
      
         print("x",x)
         
-        if  x > 180:
+        if  x > 170:
             TX_data_py2(serial_port, 20)
+            time.sleep(1)
             
-        elif x>10 and x < 140:
+        elif x>10 and x < 150:
             TX_data_py2(serial_port, 15)
-             
-        elif x>=140 and x<=180: # orginal 140 ~ 180
-            print("Center")
+            time.sleep(1)
+            
+        elif x>=150 and x<=170: # orginal 140 ~ 180
+            centerFlag += 1
+            if gradient>0 and gradient< 2.5:
+                TX_data_py2(serial_port, 4)
+                time.sleep(1)
+                
+            
+            elif gradient<0 and gradient>-2.5:
+                TX_data_py2(serial_port, 6) 
+                time.sleep(1) 
+                
             break 
             
+        
+        if centerFlag > 2:
+            break
+            
+        centerFlag += 1
         
     TX_data_py2(serial_port, 43)
     time.sleep(1)
@@ -458,7 +472,7 @@ def loop(serial_port):
                     cv2.drawContours(frame,[approx],0,(0,0,0),5)
                     
               
-        if left_count>right_count and left_count > 10:
+        if left_count>right_count and left_count > 3:
             f = open("./data/arrow.txt", 'w')
             print("left")
             f.write("left")
@@ -470,7 +484,7 @@ def loop(serial_port):
             TX_data_py2(serial_port, 21)
             exit(1)
             
-        if left_count<right_count and right_count > 10:
+        if left_count<right_count and right_count > 3:
             f = open("./data/arrow.txt", 'w')
             print("right")
             f.write("right")
@@ -484,7 +498,9 @@ def loop(serial_port):
 
     TX_data_py2(serial_port, 2)
     time.sleep(1)
-            
+    TX_data_py2(serial_port, 47)
+    time.sleep(1)
+     
     f.close()
     cap.release()
     cv2.destroyAllWindows()
