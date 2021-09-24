@@ -111,6 +111,59 @@ def textImageProcessing(img, frame):
 
 textFlag = 0
 
+def Recog(template):
+
+    img = cv2.imread('ewsn.jpg')
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+     
+    th, tw = template.shape[:2]
+
+    methods = ['cv2.TM_CCOEFF_NORMED', 'cv2.TM_CCORR_NORMED', 'cv2.TM_SQDIFF_NORMED']
+
+    count = [0,0,0,0] 
+
+
+    for i, method_name in enumerate(methods):
+        img_draw = img.copy()
+        method = eval(method_name)
+        res = cv2.matchTemplate(img, template, method)
+        
+        min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
+      
+        if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
+            top_left = min_loc
+            match_val = min_val
+        else:
+            top_left = max_loc
+            match_val = max_val
+    
+        bottom_right = (top_left[0] + tw, top_left[1] + th)
+        
+        if top_left[1] >= 0 and top_left[1] <= 162 and bottom_right[1] >= 0 and bottom_right[1] <= 162:
+            count[0] += 1
+        elif top_left[1] >= 163 and top_left[1] <= 361 and bottom_right[1] >= 163 and bottom_right[1] <= 361:
+            count[1] += 1
+        elif top_left[1] >= 362 and top_left[1] <= 560 and bottom_right[1] >= 362 and bottom_right[1] <= 560:
+            count[2] += 1
+        elif top_left[1] >= 561 and top_left[1] <= 720 and bottom_right[1] >= 561 and bottom_right[1] <= 720:
+            count[3] += 1
+        else:
+            continue
+        
+    max_index = count.index(max(count))
+    
+    if max_index == 0:
+        text = "E"
+    elif max_index == 1:
+        text = "W"
+    elif max_index == 2:
+        text = "S"
+    elif max_index == 3:
+        text = "N"
+        
+    return text
+
+'''
 def textRecog(textimage):
     global textFlag
     
@@ -170,6 +223,9 @@ def textRecog(textimage):
     
     return text
 
+
+
+
 def Recog(textimage, img_color):
     img_hsv = cv2.cvtColor(img_color, cv2.COLOR_BGR2HSV)
 
@@ -186,8 +242,11 @@ def Recog(textimage, img_color):
     text = textRecog(hsv)
 
 
-    return text
 
+
+
+    return text
+'''
 
 def loop(serial_port):
  
@@ -240,11 +299,11 @@ def loop(serial_port):
         textimage = cv2.resize(textimage, (128, 128))
       
         
-        img_color =  cv2.warpPerspective(frame, matrix, (128, 128))
-        img_color = img_color[8:110, 8:110]
-        img_color = cv2.resize(img_color, (54, 54))
+        #img_color =  cv2.warpPerspective(frame, matrix, (128, 128))
+        #img_color = img_color[8:110, 8:110]
+        #img_color = cv2.resize(img_color, (54, 54))
 
-        text = Recog(textimage, img_color)
+        text = Recog(textimage)
 
         print("text : {} ".format(text))
         if text == "E":
@@ -268,7 +327,7 @@ def loop(serial_port):
     time.sleep(1)
     TX_data_py2(serial_port, 21) 
     time.sleep(1)
-    TX_data_py2(serial_port, 2) 
+    TX_data_py2(serial_port, 11) 
     time.sleep(2)
 
     while True:
@@ -290,41 +349,36 @@ def loop(serial_port):
         
         hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20 )
         result = weighted_img(hough_img, frame)
-        cv2.imshow('img', result)
-        cv2.waitKey(1)
-        continue
-        if get_distance() >= 2:
-            f = open("./data/start.txt", 'r')
-            text = f.readline()
-            print(text)
-            
-            if text == "E":
-                TX_data_py2(serial_port, 33)
-                
-            elif text == "W":
-                TX_data_py2(serial_port, 34)
-                
-            elif text == "S":
-                TX_data_py2(serial_port, 35)
-                
-            elif text == "N":
-                TX_data_py2(serial_port, 36)
-           
-            TX_data_py2(serial_port, 47)
-            time.sleep(1)
-            TX_data_py2(serial_port, 44)
-            time.sleep(1)
-            TX_data_py2(serial_port, 32)
-            time.sleep(1)
-            TX_data_py2(serial_port, 32)
-            time.sleep(1)
-            TX_data_py2(serial_port, 32)
-            time.sleep(1)
-            
-            break
+        #cv2.imshow('img', result)
+        #cv2.waitKey(1)
+        #continue
+        #if get_distance() >= 2:
+        f = open("./data/start.txt", 'r')
+        text = f.readline()
+        print(text)
         
-        
+        if text == "E":
+            TX_data_py2(serial_port, 33)
+            
+        elif text == "W":
+            TX_data_py2(serial_port, 34)
+            
+        elif text == "S":
+            TX_data_py2(serial_port, 35)
+            
+        elif text == "N":
+            TX_data_py2(serial_port, 36)
        
+        time.sleep(1)
+        TX_data_py2(serial_port, 44)
+        time.sleep(1)
+        TX_data_py2(serial_port, 12)
+        time.sleep(1)
+    
+        break
+        
+        
+        '''
            
         if  x == -1:
             continue
@@ -342,7 +396,7 @@ def loop(serial_port):
         elif x>=135 and x<=185:
             TX_data_py2(serial_port, 47)  
             time.sleep(1) 
-            
+         '''   
         
         print(x)
         time.sleep(1) 
@@ -389,13 +443,13 @@ def loop(serial_port):
             
         elif x>=150 and x<=170: # orginal 140 ~ 180
             centerFlag += 1
-            if gradient>0 and gradient< 2.5:
-                TX_data_py2(serial_port, 4)
+            if gradient>0 and gradient< 3:
+                TX_data_py2(serial_port, 7)
                 time.sleep(1)
                 
             
-            elif gradient<0 and gradient>-2.5:
-                TX_data_py2(serial_port, 6) 
+            elif gradient<0 and gradient>-3:
+                TX_data_py2(serial_port, 9) 
                 time.sleep(1) 
                 
             break 
@@ -496,12 +550,145 @@ def loop(serial_port):
             break
 
 
-    TX_data_py2(serial_port, 2)
-    time.sleep(1)
-    TX_data_py2(serial_port, 47)
+    #TX_data_py2(serial_port, 2)
+    #time.sleep(1)
+    TX_data_py2(serial_port, 11)
     time.sleep(1)
      
+    f = open("./data/arrow.txt", 'r')
+    direction = f.readline()
+    print(direction)
     f.close()
+    
+    TX_data_py2(serial_port, 21)
+    time.sleep(1)
+    TX_data_py2(serial_port, 29)
+    
+    for i in range(6):
+        if direction == 'left':
+            TX_data_py2(serial_port,58)
+            time.sleep(1)
+        elif direction == 'right':
+            TX_data_py2(serial_port, 59)
+            time.sleep(1)
+
+    
+    while True:
+        #wait_receiving_exit()
+        _,frame = cap.read()
+        if not count_frame():
+            continue
+        #time.sleep(2)
+        img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        
+        lower_yellow = np.array([10, 100, 100])
+        upper_yellow = np.array([50, 255, 255])
+        mask = cv2.inRange(img, lower_yellow, upper_yellow)
+        image_result = cv2.bitwise_and(frame, frame,mask = mask)
+        
+        gray_img = grayscale(image_result)
+        #blur_img = gaussian_blur(gray_img, 3)
+        
+        canny_img = canny(gray_img, 20, 30)
+        
+        
+        hough_img, x, y, gradient = hough_lines(gray_img, 1, 1 * np.pi/180, 30, 0, 20 )
+        #result = weighted_img(hough_img, frame)
+        cv2.imshow('oimg',hough_img)
+        cv2.waitKey(1)
+        #print(gradient)
+        print(x)
+        
+        if direction == "right":
+            if x >= 0:
+                for i in range(2):
+                    TX_data_py2(serial_port, 59)
+                    time.sleep(2.5)
+                for i in range(4):
+                    TX_data_py2(serial_port, 9)
+                    time.sleep(1)
+                TX_data_py2(serial_port, 30)
+                break
+            
+            else:
+                TX_data_py2(serial_port, 59) 
+                time.sleep(2.5) 
+                
+        elif direction == "left":
+            if x >= 0:
+                TX_data_py2(serial_port, 26)
+                time.sleep(1)
+                for i in range(2):
+                    TX_data_py2(serial_port, 58)
+                    time.sleep(2.5)
+                
+                for i in range(4):
+                    TX_data_py2(serial_port, 7)
+                    time.sleep(1)
+         
+                TX_data_py2(serial_port, 28)
+                break
+            
+            else:
+                TX_data_py2(serial_port, 58) 
+                time.sleep(2.5) 
+            
+    if direction == "left":
+        TX_data_py2(serial_port, 28)
+        TX_data_py2(serial_port, 31)
+    elif direction == "right":
+        TX_data_py2(serial_port, 30)
+        TX_data_py2(serial_port, 31)
+	
+    lower_green = (35, 30, 30)
+    upper_green = (100, 255, 255)
+
+    lower = np.array([0, 0, 0])
+    upper = np.array([180, 255, 50])
+    
+    while True:
+        wait_receiving_exit()
+        _,frame = cap.read()
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+
+        safe_mask = cv2.inRange(hsv, lower_green, upper_green)
+
+        #green = cv2.bitwise_and(frame, frame, mask = safe_mask)
+        
+        dan_mask = cv2.inRange(hsv, lower, upper)
+        
+        safe_count = len(hsv[np.where(safe_mask != 0)])
+        dan_count = len(hsv[np.where(dan_mask != 0)])
+        
+        print("safe_count {}".format(safe_count))
+        print("dan_count {}".format(dan_count))
+
+        
+        if safe_count > 15000 and dan_count < 100: # original safe_count = 15000 , dan_count = 30
+           print("safe_zone")
+           f = open("./data/area.txt", 'w')
+           f.write("safe")
+           f.close()
+           TX_data_py2(serial_port, 38)
+           time.sleep(3)
+           TX_data_py2(serial_port, 21)
+           break
+           
+        elif dan_count > 15000 and safe_count < 100: # original dan_count = 15000 , safe_count = 30
+           print("dangerous_zone")
+           f = open("./data/area.txt", 'w')
+           f.write("dangerous")
+           f.close()
+           
+           TX_data_py2(serial_port, 37)
+           time.sleep(3)
+           TX_data_py2(serial_port, 21)
+           
+           break
+
+
+        
+    
     cap.release()
     cv2.destroyAllWindows()
     

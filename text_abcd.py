@@ -32,7 +32,7 @@ def textImageProcessing(img, frame):
         approx = cv2.approxPolyDP(c, 0.01 * cv2.arcLength(c, True), True)
 
 
-        if area > 1000:
+        if area > 5000:
             #cv2.drawContours(frame, [approx], 0, (0, 0, 255), 5)
             #cv2.imshow("d", frame)
             #cv2.waitKey(1)
@@ -243,31 +243,35 @@ def textRecog(template):
 
 def Recog(img_color):
     img_hsv = cv2.cvtColor(img_color, cv2.COLOR_BGR2HSV)
-    cv2.imshow('ss',img_hsv)
-    cv2.waitKey(1)
-    lower_red = np.array([0, 30, 40])
-    upper_red = np.array([20, 255, 255])
+   
+    lower_red = np.array([0, 30, 60])
+    upper_red = np.array([20, 255, 150])
     mask0 = cv2.inRange(img_hsv, lower_red, upper_red)
 
-    lower_red = np.array([160, 30, 40])
-    upper_red = np.array([180, 255, 255])
+    lower_red = np.array([160, 30, 60])
+    upper_red = np.array([180, 255, 150])
     mask1 = cv2.inRange(img_hsv, lower_red, upper_red)
 
     red_mask = mask0 + mask1
 
-    lower_blue = np.array([100, 50, 40])
-    upper_blue = np.array([140, 255, 255])
+    lower_blue = np.array([90, 50, 60])
+    upper_blue = np.array([130, 255, 150])
     blue_mask = cv2.inRange(img_hsv, lower_blue, upper_blue)
 
     red_hsv = img_hsv.copy()
     blue_hsv = img_hsv.copy()
     
-    #cv2.imshow('sss',red_hsv)
-    #cv2.waitKey(1)
+    cv2.imshow('sss',red_mask)
+    cv2.waitKey(1)
+    
+    cv2.imshow('ssss',blue_mask)
+    cv2.waitKey(1)
     
     red_count = len(red_hsv[np.where(red_mask != 0)])
     blue_count = len(blue_hsv[np.where(blue_mask != 0)])
-
+    print(red_count)
+    print(blue_count)
+    print()
     if red_count > blue_count:
         color = "red"
         red_hsv[np.where(red_mask != 0)] = 0
@@ -280,7 +284,8 @@ def Recog(img_color):
         blue_hsv[np.where(blue_mask == 0)] = 255
         #text = textRecog(blue_hsv)
 
-
+    
+    
     return color
 
 def loop(serial_port):
@@ -303,7 +308,7 @@ def loop(serial_port):
     
     TX_data_py2(serial_port, 21)
     TX_data_py2(serial_port, 43)
-    #TX_data_py2(serial_port, 54)
+    TX_data_py2(serial_port, 67)
     
     
     time.sleep(1)
@@ -321,36 +326,77 @@ def loop(serial_port):
     
     f2 = open("./data/result.txt","a")
     f3 = open("./data/color.txt","w")
-    
+    head_flag = 0
     while True:
-        wait_receiving_exit()
+        #wait_receiving_exit()
+        if not count_frame():
+            continue
         _,frame = cap.read()
+        frame = frame[90:,:]
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         dst = img.copy()
 
         points, frame = textImageProcessing(img, frame)
 
-        #cv2.imshow("Frame", frame)
+        cv2.imshow("Frame", frame)
         key = cv2.waitKey(1)
 
         if key == 27:
             break
         # original : only continue
         if points[0][0] is -1:
-            if rectangle_count == 15 and head_flag is False:
+            
+            
+            
+            if rectangle_count == 15 and head_flag is 0:
                 # head left 28
-                TX_data_py2(serial_port, 28)
+                TX_data_py2(serial_port, 72)
                 time.sleep(1)
                 rectangle_count = 0
-                head_flag = True
+                head_flag = 1
                 continue
-            elif rectangle_count == 15 and head_flag is True:
+            elif rectangle_count == 15 and head_flag is 1:
                 # head right 30
-                TX_data_py2(serial_port, 30)
+                TX_data_py2(serial_port, 70)
+                time.sleep(1)
+                rectangle_count = 2
+                head_flag = 2
+                continue
+            elif rectangle_count == 15 and head_flag is 2:
+                # head right 30
+                TX_data_py2(serial_port, 21)
                 time.sleep(1)
                 rectangle_count = 0
-                head_flag = False
+                head_flag = 3
                 continue
+            elif rectangle_count == 15 and head_flag is 3:
+                # head right 30
+                TX_data_py2(serial_port, 71)
+                time.sleep(1)
+                rectangle_count = 0
+                head_flag = 4
+                continue
+            elif rectangle_count == 15 and head_flag is 4:
+                # head right 30
+                TX_data_py2(serial_port, 73)
+                time.sleep(1)
+                rectangle_count = 5
+                head_flag = 0
+                continue
+            elif rectangle_count == 15 and head_flag is 5:
+                # head right 30
+                TX_data_py2(serial_port, 75)
+                time.sleep(1)
+                rectangle_count = 0
+                head_flag = 6
+                continue
+            elif rectangle_count == 15 and head_flag is 6:
+                # head right 30
+                TX_data_py2(serial_port, 74)
+                time.sleep(1)
+                rectangle_count = 0
+                head_flag = 0
+                continue        
             rectangle_count += 1
             continue
 
@@ -379,7 +425,7 @@ def loop(serial_port):
         if text =="A" or text =="B" or text=="C" or text=="D":
             TX_data_py2(serial_port, 26)
         time.sleep(2)
-        
+        continue
         if text == "A":
             f3.write(color)
             if area == "dangerous":
