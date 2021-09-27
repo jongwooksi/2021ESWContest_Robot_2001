@@ -20,8 +20,8 @@ def textImageProcessing(img, frame):
     img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
     img = cv2.erode(img, kernel)
 
-    cv2.imshow("daa", img)
-    key = cv2.waitKey(1)
+    #cv2.imshow("daa", img)
+    #key = cv2.waitKey(1)
 
     contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -32,14 +32,14 @@ def textImageProcessing(img, frame):
         approx = cv2.approxPolyDP(c, 0.01 * cv2.arcLength(c, True), True)
 
 
-        if area > 5000:
+        if area > 3000:
             #cv2.drawContours(frame, [approx], 0, (0, 0, 255), 5)
             #cv2.imshow("d", frame)
             #cv2.waitKey(1)
             if len(approx) == 4:
                 cv2.drawContours(frame, [approx], 0, (0, 0, 255), 5)
-                cv2.imshow("d", frame)
-                key = cv2.waitKey(1)
+                #cv2.imshow("d", frame)
+                #key = cv2.waitKey(1)
                 left = list(tuple(c[c[:, :, 0].argmin()][0]))
                 top = list(tuple(c[c[:, :, 1].argmin()][0]))
                 right = list(tuple(c[c[:, :, 0].argmax()][0]))
@@ -96,11 +96,20 @@ def textRecog(template):
       
         if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
             top_left = min_loc
-            match_val = min_val
+            match_val = 1-min_val
+          
         else:
             top_left = max_loc
-            match_val = max_val
-    
+            match_val = max_val 
+        
+        if method_name == 'cv2.TM_CCOEFF_NORMED':
+            match_val += 0.14
+            
+        
+        print(match_val)
+        if match_val <= 0.85:
+            continue
+            
         bottom_right = (top_left[0] + tw, top_left[1] + th)
         #print("크기 : ",top_left, bottom_right)
         if top_left[1] >= 0 and top_left[1] <= 162 and bottom_right[1] >= 0 and bottom_right[1] <= 163:
@@ -113,15 +122,16 @@ def textRecog(template):
             count[3] += 1
         
     max_index = count.index(max(count))
-    
-    if max_index == 0:
-        text = "A"
-    elif max_index == 1:
-        text = "B"
-    elif max_index == 2:
-        text = "C"
-    elif max_index == 3:
-        text = "D"
+    text = ""
+    if max(count) == 3:
+        if max_index == 0:
+            text = "A"
+        elif max_index == 1:
+            text = "B"
+        elif max_index == 2:
+            text = "C"
+        elif max_index == 3:
+            text = "D"
 
     '''
     textimage = cv2.cvtColor(textimage, cv2.COLOR_BGR2GRAY)
@@ -261,11 +271,11 @@ def Recog(img_color):
     red_hsv = img_hsv.copy()
     blue_hsv = img_hsv.copy()
     
-    cv2.imshow('sss',red_mask)
-    cv2.waitKey(1)
+    #cv2.imshow('sss',red_mask)
+    #cv2.waitKey(1)
     
-    cv2.imshow('ssss',blue_mask)
-    cv2.waitKey(1)
+    #cv2.imshow('ssss',blue_mask)
+    #cv2.waitKey(1)
     
     red_count = len(red_hsv[np.where(red_mask != 0)])
     blue_count = len(blue_hsv[np.where(blue_mask != 0)])
@@ -293,7 +303,7 @@ def loop(serial_port):
     W_View_size = 320
     H_View_size = int(W_View_size / 1.333)
 
-    FPS         = 90  #PI CAMERA: 320 x 240 = MAX 90
+    FPS         = 1  #PI CAMERA: 320 x 240 = MAX 90
 
     rectangle_count = 0
     head_flag = False
@@ -332,17 +342,18 @@ def loop(serial_port):
         if not count_frame():
             continue
         _,frame = cap.read()
-        frame = frame[90:,:]
+        frame = frame[60:160]
+        frame = cv2.resize(frame, (480,220))
         img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
         dst = img.copy()
 
         points, frame = textImageProcessing(img, frame)
 
-        cv2.imshow("Frame", frame)
-        key = cv2.waitKey(1)
+        #cv2.imshow("Frame", frame)
+        #key = cv2.waitKey(1)
 
-        if key == 27:
-            break
+        #if key == 27:
+        #    break
         # original : only continue
         if points[0][0] is -1:
             
@@ -424,8 +435,10 @@ def loop(serial_port):
         
         if text =="A" or text =="B" or text=="C" or text=="D":
             TX_data_py2(serial_port, 26)
-        time.sleep(2)
+            time.sleep(1)
+            
         continue
+        
         if text == "A":
             f3.write(color)
             if area == "dangerous":

@@ -33,7 +33,7 @@ def loop(serial_port):
     W_View_size = 320
     H_View_size = int(W_View_size / 1.333)
     
-    FPS         = 1  #PI CAMERA: 320 x 240 = MAX 90
+    FPS         = 10  #PI CAMERA: 320 x 240 = MAX 90
     TX_data_py2(serial_port, 21)
     time.sleep(1)
     TX_data_py2(serial_port, 43)

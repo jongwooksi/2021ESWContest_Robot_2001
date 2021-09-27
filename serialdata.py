@@ -107,3 +107,15 @@ def count_frame_333():
         #print("count",count)
         return True
         
+def count_frame_1():
+    global count
+    
+    if count < 19:
+        count += 1
+        #print("count",count)
+        return False
+    if count == 19:
+        count = 0
+        #print("count",count)
+        return True
+  

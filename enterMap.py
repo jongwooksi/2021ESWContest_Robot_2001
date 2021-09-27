@@ -89,7 +89,8 @@ def textImageProcessing(img, frame):
     img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
     
     img = cv2.erode(img, kernel)
-
+    cv2.imshow('img',img)
+    cv2.waitKey(1)
     contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
     contours = sorted(contours, key=cv2.contourArea, reverse=True)
@@ -112,7 +113,9 @@ def textImageProcessing(img, frame):
 textFlag = 0
 
 def Recog(template):
-
+    #cv2.imshow('img', template)
+    #cv2.waitKey(1)
+    
     img = cv2.imread('ewsn.jpg')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
      
@@ -132,10 +135,14 @@ def Recog(template):
       
         if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
             top_left = min_loc
-            match_val = min_val
+            match_val = 1-min_val
         else:
             top_left = max_loc
             match_val = max_val
+        print(match_val)
+        
+        if match_val <= 0.85:
+            continue
     
         bottom_right = (top_left[0] + tw, top_left[1] + th)
         
@@ -151,31 +158,69 @@ def Recog(template):
             continue
         
     max_index = count.index(max(count))
-    
-    if max_index == 0:
-        text = "E"
-    elif max_index == 1:
-        text = "W"
-    elif max_index == 2:
-        text = "S"
-    elif max_index == 3:
-        text = "N"
+    text = ""
+    if max(count) == 3:
+        if max_index == 0:
+            text = "E"
+        elif max_index == 1:
+            text = "W"
+        elif max_index == 2:
+            text = "S"
+        elif max_index == 3:
+            text = "N"
         
+    
     return text
 
-'''
-def textRecog(textimage):
-    global textFlag
-    
-    textimage = cv2.cvtColor(textimage, cv2.COLOR_BGR2GRAY)
+
+def textImageProcessing(img, frame):
+
+    img = cv2.Canny(img, 15, 40)
+
     kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
-    textimage = cv2.dilate(textimage, kernel)
-    
-    template = np.zeros((128, 128), np.uint8) + 255
-    
-    template[37:91, 37:91] = textimage
-    
-    img = cv2.imread('real_input4.jpg')
+
+    img = cv2.dilate(img, kernel, iterations=2)
+
+    img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
+    img = cv2.erode(img, kernel)
+
+    #cv2.imshow("daa", img)
+    #key = cv2.waitKey(1)
+
+    contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)
+
+    for c in contours:
+        area = cv2.contourArea(c)
+        approx = cv2.approxPolyDP(c, 0.01 * cv2.arcLength(c, True), True)
+
+
+        if area > 3000:
+            if len(approx) == 4:
+                cv2.drawContours(frame, [approx], 0, (0, 0, 255), 5)
+          
+                left = list(tuple(c[c[:, :, 0].argmin()][0]))
+                top = list(tuple(c[c[:, :, 1].argmin()][0]))
+                right = list(tuple(c[c[:, :, 0].argmax()][0]))
+                bottom = list(tuple(c[c[:, :, 1].argmax()][0]))
+
+                x, y, w, h = cv2.boundingRect(c)
+
+                distance_top = ((x - top[0])**2 + (y - top[1]) ** 2) ** 0.5
+
+                distance_bottom = (((x+w) - bottom[0]) ** 2 + ((y+h) - bottom[1]) ** 2) ** 0.5
+
+                return [[x, y], [x + w, y], [x, y + h], [x + w, y + h]], frame
+             
+
+    return [[-1,-1], [-1,-1], [-1,-1], [-1,-1]], frame
+
+cnt = 0
+
+def textRecogABCD(template):
+
+    img = cv2.imread('abcd.jpg')
     img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
      
     th, tw = template.shape[:2]
@@ -194,59 +239,89 @@ def textRecog(textimage):
       
         if method in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
             top_left = min_loc
-            match_val = min_val
+            match_val = 1-min_val
+          
         else:
             top_left = max_loc
-            match_val = max_val
-    
+            match_val = max_val 
+        
+        if method_name == 'cv2.TM_CCOEFF_NORMED':
+            match_val += 0.14
+            
+        
+        print(match_val)
+        if match_val <= 0.85:
+            continue
+            
         bottom_right = (top_left[0] + tw, top_left[1] + th)
-  
-        if top_left[1] >= 0 and top_left[1] <= 171 and bottom_right[1] >= 0 and bottom_right[1] <= 171:
+        #print("크기 : ",top_left, bottom_right)
+        if top_left[1] >= 0 and top_left[1] <= 162 and bottom_right[1] >= 0 and bottom_right[1] <= 163:
             count[0] += 1
-        elif top_left[1] >= 172 and top_left[1] <= 361 and bottom_right[1] >= 172 and bottom_right[1] <= 361:
+        elif top_left[1] >= 163 and top_left[1] <= 359 and bottom_right[1] >= 163 and bottom_right[1] <= 359:
             count[1] += 1
-        elif top_left[1] >= 362 and top_left[1] <= 521 and bottom_right[1] >= 362 and bottom_right[1] <= 521:
+        elif top_left[1] >= 360 and top_left[1] <= 557 and bottom_right[1] >= 360 and bottom_right[1] <= 557:
             count[2] += 1
-        elif top_left[1] >= 522 and top_left[1] <= 720 and bottom_right[1] >= 522 and bottom_right[1] <= 720:
+        elif top_left[1] >= 558 and top_left[1] <= 720 and bottom_right[1] >= 558 and bottom_right[1] <= 720:
             count[3] += 1
         
     max_index = count.index(max(count))
-    
-    if max_index == 0:
-        text = "W"
-    elif max_index == 1:
-        text = "E"
-    elif max_index == 2:
-        text = "N"
-    elif max_index == 3:
-        text = "S"
-    
+    text = ""
+    if max(count) == 3:
+        if max_index == 0:
+            text = "A"
+        elif max_index == 1:
+            text = "B"
+        elif max_index == 2:
+            text = "C"
+        elif max_index == 3:
+            text = "D"
+
+        
     return text
 
-
-
-
-def Recog(textimage, img_color):
+def RecogABCD(img_color):
     img_hsv = cv2.cvtColor(img_color, cv2.COLOR_BGR2HSV)
-
    
-    lower = np.array([0, 0, 0])
-    upper = np.array([180, 255, 60])
-    mask = cv2.inRange(img_hsv, lower, upper)
+    lower_red = np.array([0, 30, 60])
+    upper_red = np.array([20, 255, 150])
+    mask0 = cv2.inRange(img_hsv, lower_red, upper_red)
 
-    hsv = img_hsv.copy()
+    lower_red = np.array([160, 30, 60])
+    upper_red = np.array([180, 255, 150])
+    mask1 = cv2.inRange(img_hsv, lower_red, upper_red)
 
+    red_mask = mask0 + mask1
 
-    hsv[np.where(mask != 0)] = 0
-    hsv[np.where(mask == 0)] = 255
-    text = textRecog(hsv)
+    lower_blue = np.array([90, 50, 60])
+    upper_blue = np.array([130, 255, 150])
+    blue_mask = cv2.inRange(img_hsv, lower_blue, upper_blue)
 
+    red_hsv = img_hsv.copy()
+    blue_hsv = img_hsv.copy()
+    
+    
+    red_count = len(red_hsv[np.where(red_mask != 0)])
+    blue_count = len(blue_hsv[np.where(blue_mask != 0)])
+    print(red_count)
+    print(blue_count)
+    print()
+    if red_count > blue_count:
+        color = "red"
+        red_hsv[np.where(red_mask != 0)] = 0
+        red_hsv[np.where(red_mask == 0)] = 255
+        #text = textRecog(red_hsv)
 
+    else:
+        color = "blue"
+        blue_hsv[np.where(blue_mask != 0)] = 0
+        blue_hsv[np.where(blue_mask == 0)] = 255
+        #text = textRecog(blue_hsv)
 
-
-
-    return text
-'''
+    
+    
+    return color
+    
+   
 
 def loop(serial_port):
  
@@ -424,8 +499,8 @@ def loop(serial_port):
         hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20 )
         result = weighted_img(hough_img, frame[160:])
         
-        cv2.imshow('img', frame[160:])
-        cv2.waitKey(1)
+        #cv2.imshow('img', frame[160:])
+        #cv2.waitKey(1)
         
         if  x == -1: 
             TX_data_py2(serial_port, 15)
@@ -443,22 +518,23 @@ def loop(serial_port):
             
         elif x>=150 and x<=170: # orginal 140 ~ 180
             centerFlag += 1
+            
             if gradient>0 and gradient< 3:
-                TX_data_py2(serial_port, 7)
+                TX_data_py2(serial_port, 4)
                 time.sleep(1)
                 
             
             elif gradient<0 and gradient>-3:
-                TX_data_py2(serial_port, 9) 
+                TX_data_py2(serial_port, 6) 
                 time.sleep(1) 
                 
             break 
             
         
-        if centerFlag > 2:
+        if centerFlag > 3:
             break
             
-        centerFlag += 1
+       
         
     TX_data_py2(serial_port, 43)
     time.sleep(1)
@@ -594,8 +670,8 @@ def loop(serial_port):
         
         hough_img, x, y, gradient = hough_lines(gray_img, 1, 1 * np.pi/180, 30, 0, 20 )
         #result = weighted_img(hough_img, frame)
-        cv2.imshow('oimg',hough_img)
-        cv2.waitKey(1)
+        #cv2.imshow('oimg',hough_img)
+        #cv2.waitKey(1)
         #print(gradient)
         print(x)
         
@@ -664,7 +740,7 @@ def loop(serial_port):
         print("dan_count {}".format(dan_count))
 
         
-        if safe_count > 15000 and dan_count < 100: # original safe_count = 15000 , dan_count = 30
+        if safe_count > 10000 and dan_count < 100: # original safe_count = 15000 , dan_count = 30
            print("safe_zone")
            f = open("./data/area.txt", 'w')
            f.write("safe")
@@ -674,7 +750,7 @@ def loop(serial_port):
            TX_data_py2(serial_port, 21)
            break
            
-        elif dan_count > 15000 and safe_count < 100: # original dan_count = 15000 , safe_count = 30
+        elif dan_count > 10000 and safe_count < 100: # original dan_count = 15000 , safe_count = 30
            print("dangerous_zone")
            f = open("./data/area.txt", 'w')
            f.write("dangerous")
@@ -685,8 +761,182 @@ def loop(serial_port):
            TX_data_py2(serial_port, 21)
            
            break
+           
+    
+    rectangle_count = 0
+    head_flag = False
+        
+    TX_data_py2(serial_port, 21)
+    TX_data_py2(serial_port, 43)
+    TX_data_py2(serial_port, 67)
+    
+    
+    time.sleep(1)
+    
+    f = open("./data/area.txt","r")
+    
+    area = f.readline()
+    f.close()
+    
+    f_dir = open("./data/arrow.txt", 'r')
+    direction = f_dir.readline()
+    print(direction)
+    f_dir.close()
+    
+    
+    f2 = open("./data/result.txt","a")
+    f3 = open("./data/color.txt","w")
+    head_flag = 0
+    while True:
+        #wait_receiving_exit()
+        if not count_frame():
+            continue
+        _,frame = cap.read()
+        frame = frame[60:160]
+        frame = cv2.resize(frame, (480,220))
+        img = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        dst = img.copy()
+
+        points, frame = textImageProcessing(img, frame)
+
+        #cv2.imshow("Frame", frame)
+        #key = cv2.waitKey(1)
+
+        #if key == 27:
+        #    break
+        # original : only continue
+        if points[0][0] is -1:
+            
+            
+            
+            if rectangle_count == 15 and head_flag is 0:
+                # head left 28
+                TX_data_py2(serial_port, 72)
+                time.sleep(1)
+                rectangle_count = 0
+                head_flag = 1
+                continue
+            elif rectangle_count == 15 and head_flag is 1:
+                # head right 30
+                TX_data_py2(serial_port, 70)
+                time.sleep(1)
+                rectangle_count = 2
+                head_flag = 2
+                continue
+            elif rectangle_count == 15 and head_flag is 2:
+                # head right 30
+                TX_data_py2(serial_port, 21)
+                time.sleep(1)
+                rectangle_count = 0
+                head_flag = 3
+                continue
+            elif rectangle_count == 15 and head_flag is 3:
+                # head right 30
+                TX_data_py2(serial_port, 71)
+                time.sleep(1)
+                rectangle_count = 0
+                head_flag = 4
+                continue
+            elif rectangle_count == 15 and head_flag is 4:
+                # head right 30
+                TX_data_py2(serial_port, 73)
+                time.sleep(1)
+                rectangle_count = 5
+                head_flag = 0
+                continue
+            elif rectangle_count == 15 and head_flag is 5:
+                # head right 30
+                TX_data_py2(serial_port, 75)
+                time.sleep(1)
+                rectangle_count = 0
+                head_flag = 6
+                continue
+            elif rectangle_count == 15 and head_flag is 6:
+                # head right 30
+                TX_data_py2(serial_port, 74)
+                time.sleep(1)
+                rectangle_count = 0
+                head_flag = 0
+                continue        
+            rectangle_count += 1
+            continue
+
+        print(points)
 
 
+        pts1 = np.float32([[ points[0], points[1], points[2], points[3]]])
+        pts2 = np.float32([[0, 0], [128, 0], [0, 128], [128, 128]])
+
+        matrix = cv2.getPerspectiveTransform(pts1, pts2)
+        textimage = cv2.warpPerspective(dst, matrix, (128, 128))
+
+        textimage = textimage[12:110, 12:110]
+        textimage = cv2.resize(textimage, (128, 128))
+
+        text = textRecogABCD(textimage)
+        
+        img_color =  cv2.warpPerspective(frame, matrix, (128, 128))
+        img_color = img_color[12:110, 12:110]
+        img_color = cv2.resize(img_color, (54, 54))
+
+        color = RecogABCD(img_color)
+
+        print("text : {} \ncolor : {}".format(text, color))
+        
+        if text =="A" or text =="B" or text=="C" or text=="D":
+            TX_data_py2(serial_port, 26)
+            time.sleep(1)
+            
+        
+        if text == "A":
+            f3.write(color)
+            if area == "dangerous":
+                f2.write(text)
+                break
+                
+            if direction == "right":
+                TX_data_py2(serial_port, 19)
+            elif direction == "left":
+                TX_data_py2(serial_port, 25)
+                
+            break
+        elif text == "B":
+            f3.write(color)
+            if area == "dangerous":
+                f2.write(text)
+                break
+                
+            if direction == "right":
+                TX_data_py2(serial_port, 19)
+            elif direction == "left":
+                TX_data_py2(serial_port, 25)
+                
+            break
+        elif text == "C":
+            f3.write(color)
+            if area == "dangerous":
+                f2.write(text)
+                break
+                
+            if direction == "right":
+                TX_data_py2(serial_port, 19)
+            elif direction == "left":
+                TX_data_py2(serial_port, 25)
+                
+            break
+        elif text == "D":
+            f3.write(color)
+            if area == "dangerous":
+                f2.write(text)
+                break
+                
+            if direction == "right":
+                TX_data_py2(serial_port, 19)
+            elif direction == "left":
+                TX_data_py2(serial_port, 25)
+                
+            break
+            
         
     
     cap.release()
