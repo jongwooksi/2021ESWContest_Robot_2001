@@ -48,7 +48,7 @@ def loop(serial_port):
     W_View_size = 320
     H_View_size = int(W_View_size / 1.333)
 
-    FPS         = 5 #PI CAMERA: 320 x 240 = MAX 90
+    FPS         = 10 #PI CAMERA: 320 x 240 = MAX 90
 
 
     cap = cv2.VideoCapture(0)

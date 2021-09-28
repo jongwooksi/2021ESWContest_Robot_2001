@@ -96,8 +96,12 @@ def loop(serial_port):
     print(area)
     print(color)
     
-    stage = 0
+    stage = -1
     step = 0
+    stepCountList = [0,0,0,0,0,0]
+    rectangle_count = 0
+    head_flag = 0
+    #stepMilk = False
     
     if area == "dangerous":
         while True:
@@ -107,6 +111,8 @@ def loop(serial_port):
             if not count_frame():
                 continue
             img_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            
+            
             
             if stage < 3:
                 if color == "red":
@@ -135,12 +141,15 @@ def loop(serial_port):
             if stage == 0:
                 if  loc > 180:
                     TX_data_py2(serial_port, 20)
-                    
+                    time.sleep(1)
+                    stepCountList[1] += 1
                 
                         
                 elif loc>10 and loc < 140:
                     TX_data_py2(serial_port, 15)
-                    
+                    time.sleep(1)
+                    stepCountList[0] += 1
+                
              
                 
                 elif loc>=140 and loc<=180:
@@ -150,6 +159,8 @@ def loop(serial_port):
                     
                 elif loc < 0 :
                     TX_data_py2(serial_port, 47)
+                    time.sleep(1)
+                    stepCountList[2] += 1
                 
             
             
@@ -171,36 +182,44 @@ def loop(serial_port):
                 else :
                     if  loc > 180:
                         TX_data_py2(serial_port, 20)
-                    
+                        time.sleep(1)
+                        stepCountList[1] += 1
+                
                 
                         
                     elif loc>10 and loc < 140:
                         TX_data_py2(serial_port, 15)
-                        
+                        time.sleep(1)
+                        stepCountList[0] += 1
+                
                  
                     
                     elif loc>=140 and loc<=180:
                         TX_data_py2(serial_port, 47)
                         time.sleep(1)
-                        step+= 1
-            
+                        stepCountList[3] += 1
+                
                 
                     elif loc< 0 :
                         TX_data_py2(serial_port, 47)
                         time.sleep(1)
-   
+                        stepCountList[3] += 1
+                
             elif stage == 2:
                 if  loc > 170:
                     TX_data_py2(serial_port, 20) #Right
-                
+                    time.sleep(1)
+                    stepCountList[1] += 1
+    
                     
                 elif loc>10 and loc < 130:
                     TX_data_py2(serial_port, 15) #Left
-                   
+                    time.sleep(1)
+                    stepCountList[0] += 1
                 
                 elif loc>=130 and loc<=170:
-                 
                     TX_data_py2(serial_port, 45) #Milk Up
+                    time.sleep(1)
                     stage = 3
                     
                     continue
@@ -246,6 +265,8 @@ def loop(serial_port):
             if not count_frame_333():
                 continue
             img_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+            cv2.imshow('ijmg', frame)
+            cv2.waitKey(1)
             
             if stage < 3:
                 if color == "red":
@@ -271,16 +292,71 @@ def loop(serial_port):
                 loc = (x + x + w)/2
                 print(loc)
                 
+            if stage == -1:
+                if x == -1:
+                    if rectangle_count == 3 and head_flag is 0:
+                        # head left 28
+                        TX_data_py2(serial_port, 74)
+                        time.sleep(0.5)
+                        rectangle_count = 0
+                        head_flag = 2
+                        
+                    
+                    
+                    elif rectangle_count == 3 and head_flag is 2:
+                        # head right 30
+                        TX_data_py2(serial_port, 75)
+                        time.sleep(0.5)
+                        rectangle_count = 0
+                        head_flag = 4
+                        
+                        
+                    elif rectangle_count == 3 and head_flag is 4:
+                        # head right 30
+                        TX_data_py2(serial_port, 21)
+                        time.sleep(0.5)
+                        rectangle_count = 0
+                        head_flag = 0
+                        
+                    
+                    rectangle_count +=1                         
+                else: 
+                    TX_data_py2(serial_port, 21)
+                    time.sleep(1) 
+                    stage = 0
+                    locStep = abs(int( (loc-160)/40 ))
+                    if  head_flag == 2:
+                        for i in range(locStep):
+                            TX_data_py2(serial_port, 7)
+                            time.sleep(0.5) 
+                    elif head_flag == 4 :
+                        for i in range(locStep):
+                            TX_data_py2(serial_port, 9)
+                            time.sleep(0.5) 
+                     
+                    continue
+                        
+                      
+                    
             if stage == 0:
                 if  loc > 180:
                     TX_data_py2(serial_port, 20)
+                    time.sleep(0.5)
+                    stepCountList[1]+=1
                 elif loc>10 and loc < 140:
                     TX_data_py2(serial_port, 15)
+                    time.sleep(0.5)
+                    stepCountList[0]+=1
                 elif loc>=140 and loc<=180:
                     stage = 1
-                    TX_data_py2(serial_port, 29) #Head Down 80   
+                    if y < 80:  
+                        TX_data_py2(serial_port, 11)
+                        time.sleep(0.5)
+                        stepCountList[4]+=2
                     
-            
+                    TX_data_py2(serial_port, 29) #Head Down 80 
+                      
+     
             elif stage == 1:
                  #time.sleep(0.2)
                 print(y + h)
@@ -288,34 +364,73 @@ def loop(serial_port):
                 if flagcounter == 0:
                     time.sleep(1)
                     
-                if flagcounter > 2:
+                if flagcounter == 1:
                     stage = 2
                     
-                if color == "red" and y + h > 200:
+                if color == "red" and y + h > 210:
                     flagcounter += 1
        
-                elif color == "blue" and y + h > 200:
+                elif color == "blue" and y + h > 210:
                     flagcounter += 1
                 else :
                     if  loc > 180:
                         TX_data_py2(serial_port, 20)
+                        time.sleep(0.5)
+                        stepCountList[1]+=1
                     elif loc>10 and loc < 140:
                         TX_data_py2(serial_port, 15)
+                        time.sleep(0.5)
+                        stepCountList[0]+=1
                     elif loc>=140 and loc<=180:
                         TX_data_py2(serial_port, 47)
+                        time.sleep(0.5)
+                        stepCountList[2]+=1
+                        #stepMilk -= 1
                     elif loc< 0 :
                         TX_data_py2(serial_port, 47)
+                        time.sleep(0.5)
+                        stepCountList[2]+=1
+                        #stepMilk -= 1
    
             elif stage == 2:
                 if  loc > 170:
                     TX_data_py2(serial_port, 20) #Right
+                    time.sleep(0.5)
+                    stepCountList[1]+=1
                 elif loc>10 and loc < 130:
                     TX_data_py2(serial_port, 15) #Left
+                    time.sleep(0.5)
+                    stepCountList[0]+=1
                 elif loc>=130 and loc<=170:
                     stage = 3
                     continue
                     
             elif stage == 3:
+                if head_flag == 2: safeloc = "right"
+                elif head_flag == 4: safeloc = "left"
+                elif head_flag == 0: safeloc = "center"
+                
+                #TX_data_py2(serial_port, 21)
+                #time.sleep(1)
+                TX_data_py2(serial_port, 29) #original 31
+                time.sleep(0.5)
+                TX_data_py2(serial_port, 45) #Milk Up
+                time.sleep(0.5)
+                
+                if head_flag is not 0:
+                    if stepCountList[4] is  0:
+                        TX_data_py2(serial_port, 76)
+                        time.sleep(0.5)
+                '''
+                if head_flag is not 0:
+                    for i in range(stepMilk):
+                        TX_data_py2(serial_port, 76)
+                        time.sleep(0.5)
+                        stepCountList[3]+=1
+                 '''     
+                    
+                stage = 4           
+                '''
                 TX_data_py2(serial_port, 30)
                 dan_mask = cv2.inRange(img_hsv, lower_green, upper_green)
                 safe_count = len(img_hsv[np.where(dan_mask != 0)])
@@ -346,52 +461,89 @@ def loop(serial_port):
                         time.sleep(2)
                         TX_data_py2(serial_port, 45) #Milk Up
                         stage = 4
-           
+                 '''
+                    
             elif stage == 4:
-                dan_mask = cv2.inRange(img_hsv, lower_green, upper_green)
-                safe_count = len(img_hsv[np.where(dan_mask != 0)])
+                dan_mask = cv2.inRange(img_hsv[200:,:], lower_green, upper_green)
+                safe_count = len(img_hsv[200:,:][np.where(dan_mask != 0)])
                 
                 if safeloc == "right":
                     TX_data_py2(serial_port, 52) #Right
-                    step += 1
+                    time.sleep(0.5)
+                    stepCountList[5]+=1
                 elif safeloc == "left":
                     TX_data_py2(serial_port, 50) #Left
-                    step += 1
-                   
+                    time.sleep(0.5)
+                    stepCountList[4]+=1
+                    
+                elif safeloc == "center":
+                    TX_data_py2(serial_port, 76) #Left
+                    time.sleep(1)
+                    stepCountList[3]+=1
+                
+                
+                 
                 time.sleep(2)
                 print(safe_count)
                 print("area count : ", areacount)
                 cv2.imshow("frame", dan_mask)
                 cv2.waitKey(1)
-                if safe_count > 18000: # safe_count > 8000 and safe_count < 18000
+                if safe_count > 3000: # safe_count > 8000 and safe_count < 18000
                     areacount += 1
                     
-                if areacount > 3:
+                if areacount > 2:
                     TX_data_py2(serial_port, 53)
+                    time.sleep(1)
                     stage = 5
                 continue
-                    
+           
             
             elif stage == 5 :
+                print(stepCountList)
+                backStepLeftRight = int(stepCountList[1]/5) + stepCountList[5]
+                backStepLeftRight -= int(stepCountList[0]/5)
+                backStepLeftRight -= stepCountList[4]
+                
+                if backStepLeftRight < 0:
+                    for i in range(abs(backStepLeftRight)):
+                        TX_data_py2(serial_port, 52) 
+                        time.sleep(1)
+                        
+                elif backStepLeftRight > 0:
+                    for i in range(abs(backStepLeftRight)):
+                        TX_data_py2(serial_port, 50) 
+                        time.sleep(1)
+                        
+                backStep = (stepCountList[2]//4) + (stepCountList[3]//2)
+                        
+
+               
+                for i in range(backStep):
+                    TX_data_py2(serial_port, 12) 
+                    time.sleep(1)
+                    
+             
+                for i in range(stepCountList[2] % 4):
+                    TX_data_py2(serial_port, 77) 
+                    time.sleep(1)
+                
+                
                 if safeloc == "right":
-                    for i in range(step*2):
-                        TX_data_py2(serial_port, 50) #Left
-                        time.sleep(1)
                     TX_data_py2(serial_port, 48)
+                    time.sleep(1)
+                    
                 elif safeloc == "left":
-                    for i in range(int(step*1.5)):
-                        TX_data_py2(serial_port, 52) #Right
-                        time.sleep(1)
                     TX_data_py2(serial_port, 49)
+                    time.sleep(1)
 
-          
-                cap.release()
-                cv2.destroyAllWindows()
+                break
+        cap.release()
+        cv2.destroyAllWindows()
 
-                time.sleep(1)
-                exit(1)
+        time.sleep(1)
+        exit(1)
 
-            time.sleep(1)
+            #time.sleep(1)
             
      
     
