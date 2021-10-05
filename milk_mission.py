@@ -5,6 +5,79 @@ import serial
 import time
 from serialdata import *
 
+
+def grayscale(img): 
+    return cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+
+def canny(img, low_threshold, high_threshold): 
+    return cv2.Canny(img, low_threshold, high_threshold)
+
+def gaussian_blur(img, kernel_size): 
+    return cv2.GaussianBlur(img, (kernel_size, kernel_size), 0)
+
+def hough_lines(img, rho, theta, threshold, min_line_len, max_line_gap):
+    lines = cv2.HoughLinesP(img, rho, theta, threshold, np.array([]), minLineLength=min_line_len, maxLineGap=max_line_gap)
+    line_img = np.zeros((img.shape[0], img.shape[1], 3), dtype=np.uint8)
+    x, y, gradient =  draw_lines(line_img, lines)
+    return line_img, x, y, gradient
+
+
+def weighted_img(img, initial_img, a=1, b=1., c=0.):
+    return cv2.addWeighted(initial_img, a, img, b, c)
+ 
+ 
+def draw_lines(img, lines, color=[0, 0, 255], thickness=3):
+   
+    x=-1
+    y=-1
+    gradient=0
+    maxvalue = 0
+    point=[0,0,0,0]
+    if lines is None:
+        return x, y, gradient
+   
+    for line in lines:
+        for x1,y1,x2,y2 in line:
+                           
+            if y2 < 120 and y1 < 120 :
+                continue
+            
+             
+            if maxvalue < max(y1, y2):
+                maxvalue = max(y1, y2)
+            
+                gradient = (y2-y1)/(x2-x1+0.00001)
+                
+                x = max(x1, x2)
+                point[0] = x1
+                point[1] = y1
+                point[2] = x2
+                point[3] = y2
+       
+    if point[0] == 0 and point[1] == 0:
+         for line in lines:
+            for x1,y1,x2,y2 in line:
+                               
+                
+                 
+                if maxvalue < max(y1, y2):
+                    maxvalue = max(y1, y2)
+                
+                    gradient = (y2-y1)/(x2-x1+0.00001)
+                    
+                    x = max(x1, x2)
+                    point[0] = x1
+                    point[1] = y1
+                    point[2] = x2
+                    point[3] = y2
+            
+        
+        
+    cv2.line(img, (point[0], point[1]), (point[2], point[3]), color, thickness)
+            
+    return x, y, gradient
+
+
 def preprocessing(frame):
 	
     img = cv2.Canny(frame, 50, 255)
@@ -52,9 +125,7 @@ def loop(serial_port):
     cap.set(3, W_View_size)
     cap.set(4, H_View_size)
     cap.set(5, FPS)
-    #cap.set(cv2.CAP_PROP_BUFFERSIZE,0)
-    
-    
+  
     
     lower_red = np.array([0, 120, 40])
     upper_red = np.array([20, 255, 255])
@@ -76,14 +147,20 @@ def loop(serial_port):
     TX_data_py2(serial_port, 21) # Head Down 60
     time.sleep(0.5)
     TX_data_py2(serial_port, 31)
+    
     flag = False
     milk_flag = False
     drop_flag = False
     safeloc_flag = False
+    
     flagcounter = 0
     count = 0
     areacount = 0
     loc = -1
+    area_zone = [0,0]
+    locStepLeftRight = 0
+    
+    
     f = open("./data/area.txt","r")
     
     area = f.readline()
@@ -98,16 +175,14 @@ def loop(serial_port):
     
     stage = -1
     step = 0
-    stepCountList = [0,0,0,0,0,0]
+    stepCountList = [0,0,0]
     rectangle_count = 0
     head_flag = 0
-    #stepMilk = False
-    
+ 
     if area == "dangerous":
         while True:
-            #wait_receiving_exit()
-    
             _,frame = cap.read()
+            
             if not count_frame():
                 continue
             img_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
@@ -120,8 +195,7 @@ def loop(serial_port):
                     mask1 = cv2.inRange(img_hsv, lower_red2, upper_red2)
                     red_mask = mask0 + mask1
                     image_result = cv2.bitwise_and(frame, frame,mask = red_mask)
-                    #time.sleep(1)
-                    
+ 
                     [x, y, w, h] = preprocessing(image_result)
                  
                  
@@ -129,7 +203,6 @@ def loop(serial_port):
                     
                     blue_mask = cv2.inRange(img_hsv, lower_blue, upper_blue)
                     image_result = cv2.bitwise_and(frame, frame,mask = blue_mask)
-                    #time.sleep(1)
                     
                     [x, y, w, h] = preprocessing(image_result)
                     
@@ -150,7 +223,6 @@ def loop(serial_port):
                     time.sleep(1)
                     stepCountList[0] += 1
                 
-             
                 
                 elif loc>=140 and loc<=180:
                     stage = 1
@@ -161,9 +233,7 @@ def loop(serial_port):
                     TX_data_py2(serial_port, 47)
                     time.sleep(1)
                     stepCountList[2] += 1
-                
-            
-            
+                   
                     
             elif stage == 1:
                 print(y + h)
@@ -184,26 +254,21 @@ def loop(serial_port):
                         TX_data_py2(serial_port, 20)
                         time.sleep(1)
                         stepCountList[1] += 1
-                
-                
                         
                     elif loc>10 and loc < 140:
                         TX_data_py2(serial_port, 15)
                         time.sleep(1)
                         stepCountList[0] += 1
-                
-                 
-                    
+     
                     elif loc>=140 and loc<=180:
                         TX_data_py2(serial_port, 47)
                         time.sleep(1)
-                        stepCountList[3] += 1
-                
-                
+                        stepCountList[2] += 1
+                   
                     elif loc< 0 :
                         TX_data_py2(serial_port, 47)
                         time.sleep(1)
-                        stepCountList[3] += 1
+                        stepCountList[2] += 1
                 
             elif stage == 2:
                 if  loc > 170:
@@ -226,12 +291,11 @@ def loop(serial_port):
    
             
             elif stage == 3:
-             
-                '''
-                dan_mask = cv2.inRange(img_hsv, lower_black, upper_black)
-                dan_count = len(img_hsv[np.where(dan_mask != 0)])
+
+                dan_mask = cv2.inRange(img_hsv[200:,:], lower_black, upper_black)
+                dan_count = len(img_hsv[200:,:][np.where(dan_mask != 0)])
                 TX_data_py2(serial_port, 51)
-                time.sleep(3)
+                time.sleep(1)
                 
                 print(dan_count)
                 print("areacount: {}".format(areacount))
@@ -245,19 +309,112 @@ def loop(serial_port):
                     TX_data_py2(serial_port, 51)
                     time.sleep(1)
                     
+                '''
+                if areacount >1:
+                    TX_data_py2(serial_port, 53)
+                    time.sleep(1)
+                    stage = 5
                 
-                TX_data_py2(serial_port, 53)
-                time.sleep(1)
+                
+                '''
                 cap.release()
                 cv2.destroyAllWindows()
                 exit(1)  
+                '''
                   
-
-    
-            time.sleep(1) 
+            elif stage == 5 :
+                
+                print(stepCountList)
+                backStepLeftRight = stepCountList[0] - stepCountList[1]
+               
+                if backStepLeftRight < 0:
+                    for i in range(abs(backStepLeftRight//4)):
+                        TX_data_py2(serial_port, 58) 
+                        time.sleep(1)
+                    for i in range(abs(backStepLeftRight%4)):
+                        TX_data_py2(serial_port, 15) 
+                        time.sleep(1)
+                
+                elif backStepLeftRight > 0:
+                    for i in range(abs(backStepLeftRight//4)):
+                        TX_data_py2(serial_port, 59) 
+                        time.sleep(1)
+                    for i in range(abs(backStepLeftRight%4)):
+                        TX_data_py2(serial_port, 20) 
+                        time.sleep(1)
+                
+               
+                backStep = stepCountList[2]
+                        
+                c = 2
+                
+                  
+                    
+                for i in range(backStep//c):
+                    TX_data_py2(serial_port, 12) 
+                    time.sleep(1)
+                    
+                for i in range(backStep%c):
+                    TX_data_py2(serial_port, 32) 
+                    time.sleep(1)
+                  
+                
             
+                TX_data_py2(serial_port, 49)
+                time.sleep(1)
+                TX_data_py2(serial_port, 49)
+                time.sleep(1)
+  
+                stage = 6
+                
+                
+            elif stage == 6:   
+               
+                img = cv2.cvtColor(frame[:160], cv2.COLOR_BGR2HSV)
+                
+                lower_yellow = np.array([10, 100, 100])
+                upper_yellow = np.array([50, 255, 255])
+                mask = cv2.inRange(img, lower_yellow, upper_yellow)
+                image_result = cv2.bitwise_and(frame[:160], frame[:160],mask = mask)
 
-    area_zone = [0,0]
+                gray_img = grayscale(image_result)
+                blur_img = gaussian_blur(gray_img, 3)
+                canny_img = canny(blur_img, 20, 30)
+                
+                
+                hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20 )
+                result = weighted_img(hough_img, frame[:160])
+                
+                
+                if  x == -1: 
+                    TX_data_py2(serial_port, 15)
+                    time.sleep(1)
+             
+                print("x",x)
+                
+                if  x > 170:
+                    TX_data_py2(serial_port, 20)
+                    time.sleep(1)
+                    
+                elif x>10 and x < 150:
+                    TX_data_py2(serial_port, 15)
+                    time.sleep(1)
+                    
+                elif x>=150 and x<=170: # orginal 140 ~ 180
+                    print(gradient)
+                    if gradient>0 and gradient< 10:
+                        TX_data_py2(serial_port, 4)
+                        time.sleep(1)
+                        
+                    
+                    elif gradient<0 and gradient>-10:
+                        TX_data_py2(serial_port, 6) 
+                        time.sleep(1) 
+                    
+                    else:
+                        break 
+    
+    
     
     if area == "safe":
         while True:
@@ -265,8 +422,7 @@ def loop(serial_port):
             if not count_frame_333():
                 continue
             img_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-            cv2.imshow('ijmg', frame)
-            cv2.waitKey(1)
+        
             
             if stage < 3:
                 if color == "red":
@@ -274,7 +430,7 @@ def loop(serial_port):
                     mask1 = cv2.inRange(img_hsv, lower_red2, upper_red2)
                     red_mask = mask0 + mask1
                     image_result = cv2.bitwise_and(frame, frame,mask = red_mask)
-                    #time.sleep(1)
+            
                     
                     [x, y, w, h] = preprocessing(image_result)
                  
@@ -283,15 +439,12 @@ def loop(serial_port):
                 
                     blue_mask = cv2.inRange(img_hsv, lower_blue, upper_blue)
                     image_result = cv2.bitwise_and(frame, frame,mask = blue_mask)
-                    #time.sleep(1)
+          
                     
                     [x, y, w, h] = preprocessing(image_result)
-              
-                            
-                print( x, y, x+w, y+h)
+            
                 loc = (x + x + w)/2
-                print(loc)
-                
+             
             if stage == -1:
                 if x == -1:
                     if rectangle_count == 3 and head_flag is 0:
@@ -301,8 +454,7 @@ def loop(serial_port):
                         rectangle_count = 0
                         head_flag = 2
                         
-                    
-                    
+
                     elif rectangle_count == 3 and head_flag is 2:
                         # head right 30
                         TX_data_py2(serial_port, 75)
@@ -325,6 +477,7 @@ def loop(serial_port):
                     time.sleep(1) 
                     stage = 0
                     locStep = abs(int( (loc-160)/40 ))
+                    locStepLeftRight = int( (loc-160)/80)
                     if  head_flag == 2:
                         for i in range(locStep):
                             TX_data_py2(serial_port, 7)
@@ -349,16 +502,15 @@ def loop(serial_port):
                     stepCountList[0]+=1
                 elif loc>=140 and loc<=180:
                     stage = 1
-                    if y < 80:  
+                    if y < 180:  
                         TX_data_py2(serial_port, 11)
                         time.sleep(0.5)
-                        stepCountList[4]+=2
+                        stepCountList[2]+=4
                     
                     TX_data_py2(serial_port, 29) #Head Down 80 
                       
      
             elif stage == 1:
-                 #time.sleep(0.2)
                 print(y + h)
                 print(flagcounter)
                 if flagcounter == 0:
@@ -385,12 +537,12 @@ def loop(serial_port):
                         TX_data_py2(serial_port, 47)
                         time.sleep(0.5)
                         stepCountList[2]+=1
-                        #stepMilk -= 1
+                        
                     elif loc< 0 :
                         TX_data_py2(serial_port, 47)
                         time.sleep(0.5)
                         stepCountList[2]+=1
-                        #stepMilk -= 1
+                        
    
             elif stage == 2:
                 if  loc > 170:
@@ -410,58 +562,30 @@ def loop(serial_port):
                 elif head_flag == 4: safeloc = "left"
                 elif head_flag == 0: safeloc = "center"
                 
-                #TX_data_py2(serial_port, 21)
-                #time.sleep(1)
+             
                 TX_data_py2(serial_port, 29) #original 31
                 time.sleep(0.5)
                 TX_data_py2(serial_port, 45) #Milk Up
                 time.sleep(0.5)
                 
+                if head_flag is 0:
+                    if  locStepLeftRight < 0:
+                        for i in range(locStep):
+                            TX_data_py2(serial_port, 52)
+                            time.sleep(1) 
+                    elif locStepLeftRight >0 :
+                        for i in range(locStep):
+                            TX_data_py2(serial_port, 50)
+                            time.sleep(1) 
+                     
                 if head_flag is not 0:
-                    if stepCountList[4] is  0:
+                    if stepCountList[2] <4:
                         TX_data_py2(serial_port, 76)
                         time.sleep(0.5)
-                '''
-                if head_flag is not 0:
-                    for i in range(stepMilk):
-                        TX_data_py2(serial_port, 76)
-                        time.sleep(0.5)
-                        stepCountList[3]+=1
-                 '''     
-                    
+                        stepCountList[2]+=4
+                
                 stage = 4           
-                '''
-                TX_data_py2(serial_port, 30)
-                dan_mask = cv2.inRange(img_hsv, lower_green, upper_green)
-                safe_count = len(img_hsv[np.where(dan_mask != 0)])
-                time.sleep(2)
-   
-                print(safe_count)
-                if safe_count > 100 :
-                    area_zone[0] += 1 
-                else :
-                    area_zone[1] += 1
-                    
-                 
-                if sum(area_zone) > 5:
-                    if area_zone[0] > area_zone[1] :
-                        safeloc = "right"
-                        print(safeloc)
-                        TX_data_py2(serial_port, 21)
-                        time.sleep(2)
-                        TX_data_py2(serial_port, 29) #original 31
-                        time.sleep(2)
-                        TX_data_py2(serial_port, 45) #Milk Up
-                        stage = 4
-                    else:
-                        safeloc = "left"
-                        TX_data_py2(serial_port, 21)
-                        time.sleep(2)
-                        TX_data_py2(serial_port, 29) #original 31
-                        time.sleep(2)
-                        TX_data_py2(serial_port, 45) #Milk Up
-                        stage = 4
-                 '''
+                
                     
             elif stage == 4:
                 dan_mask = cv2.inRange(img_hsv[200:,:], lower_green, upper_green)
@@ -470,17 +594,21 @@ def loop(serial_port):
                 if safeloc == "right":
                     TX_data_py2(serial_port, 52) #Right
                     time.sleep(0.5)
-                    stepCountList[5]+=1
+                    stepCountList[1]+=3
                 elif safeloc == "left":
                     TX_data_py2(serial_port, 50) #Left
                     time.sleep(0.5)
-                    stepCountList[4]+=1
+                    stepCountList[0]+=3
                     
                 elif safeloc == "center":
-                    TX_data_py2(serial_port, 76) #Left
+                    TX_data_py2(serial_port, 76) #Center 
                     time.sleep(1)
-                    stepCountList[3]+=1
+                    stepCountList[2]+=1
                 
+                tempCnt = 0
+                
+                if safeloc == "center": tempCnt = 1
+                else : tempCnt = 2
                 
                  
                 time.sleep(2)
@@ -491,60 +619,131 @@ def loop(serial_port):
                 if safe_count > 3000: # safe_count > 8000 and safe_count < 18000
                     areacount += 1
                     
-                if areacount > 2:
+                if areacount > tempCnt:
                     TX_data_py2(serial_port, 53)
                     time.sleep(1)
                     stage = 5
+                    
                 continue
            
             
             elif stage == 5 :
-                print(stepCountList)
-                backStepLeftRight = int(stepCountList[1]/5) + stepCountList[5]
-                backStepLeftRight -= int(stepCountList[0]/5)
-                backStepLeftRight -= stepCountList[4]
                 
-                if backStepLeftRight < 0:
-                    for i in range(abs(backStepLeftRight)):
-                        TX_data_py2(serial_port, 52) 
-                        time.sleep(1)
-                        
-                elif backStepLeftRight > 0:
-                    for i in range(abs(backStepLeftRight)):
-                        TX_data_py2(serial_port, 50) 
-                        time.sleep(1)
-                        
-                backStep = (stepCountList[2]//4) + (stepCountList[3]//2)
-                        
-
+                print(stepCountList)
+                backStepLeftRight = stepCountList[0] - stepCountList[1]
+                if not safeloc == "center": 
+                    if backStepLeftRight < 0:
+                        for i in range(abs(backStepLeftRight//4)):
+                            TX_data_py2(serial_port, 58) 
+                            time.sleep(1)
+                        for i in range(abs(backStepLeftRight%4)):
+                            TX_data_py2(serial_port, 15) 
+                            time.sleep(1)
+                    
+                    elif backStepLeftRight > 0:
+                        for i in range(abs(backStepLeftRight//4)):
+                            TX_data_py2(serial_port, 59) 
+                            time.sleep(1)
+                        for i in range(abs(backStepLeftRight%4)):
+                            TX_data_py2(serial_port, 20) 
+                            time.sleep(1)
+                
                
-                for i in range(backStep):
+                backStep = stepCountList[2]
+                        
+                c = 0
+                
+                if safeloc == "center": c = 3
+                else : c = 2
+                    
+                    
+                for i in range(backStep//c):
                     TX_data_py2(serial_port, 12) 
                     time.sleep(1)
                     
-             
-                for i in range(stepCountList[2] % 4):
-                    TX_data_py2(serial_port, 77) 
+                for i in range(backStep%c):
+                    TX_data_py2(serial_port, 32) 
+                    time.sleep(1)
+                  
+                if backStep > 9:
+                    TX_data_py2(serial_port, 32) 
                     time.sleep(1)
                 
-                
                 if safeloc == "right":
+                    TX_data_py2(serial_port, 49)
+                    time.sleep(1)
+                    TX_data_py2(serial_port, 49)
+                    time.sleep(1)
+        
+
+                elif safeloc == "left":
                     TX_data_py2(serial_port, 48)
                     time.sleep(1)
                     
-                elif safeloc == "left":
+                else :
                     TX_data_py2(serial_port, 49)
                     time.sleep(1)
+                    TX_data_py2(serial_port, 9)
+                    time.sleep(1)
+                    TX_data_py2(serial_port, 9)
+                    time.sleep(1)
+                    
+                stage = 6
+                
+            elif stage == 6:   
+               
+                img = cv2.cvtColor(frame[:160], cv2.COLOR_BGR2HSV)
+                
+                lower_yellow = np.array([10, 100, 100])
+                upper_yellow = np.array([50, 255, 255])
+                mask = cv2.inRange(img, lower_yellow, upper_yellow)
+                image_result = cv2.bitwise_and(frame[:160], frame[:160],mask = mask)
 
-                break
+                gray_img = grayscale(image_result)
+                blur_img = gaussian_blur(gray_img, 3)
+                canny_img = canny(blur_img, 20, 30)
+                
+                
+                hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20 )
+                result = weighted_img(hough_img, frame[:160])
+                
+                
+                if  x == -1: 
+                    TX_data_py2(serial_port, 15)
+                    time.sleep(1)
+             
+                print("x",x)
+                
+                if  x > 170:
+                    TX_data_py2(serial_port, 20)
+                    time.sleep(1)
+                    
+                elif x>10 and x < 150:
+                    TX_data_py2(serial_port, 15)
+                    time.sleep(1)
+                    
+                elif x>=150 and x<=170: # orginal 140 ~ 180
+                    print(gradient)
+                    if gradient>0 and gradient< 10:
+                        TX_data_py2(serial_port, 4)
+                        time.sleep(1)
+                        
+                    
+                    elif gradient<0 and gradient>-10:
+                        TX_data_py2(serial_port, 6) 
+                        time.sleep(1) 
+                    
+                    else:
+                        break 
+                
+        
         cap.release()
         cv2.destroyAllWindows()
 
         time.sleep(1)
         exit(1)
 
-            #time.sleep(1)
-            
+      
      
     
     
