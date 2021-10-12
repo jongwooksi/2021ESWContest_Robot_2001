@@ -117,7 +117,7 @@ def loop(serial_port):
     W_View_size = 320
     H_View_size = int(W_View_size / 1.333)
 
-    FPS         = 5  #PI CAMERA: 320 x 240 = MAX 90
+    FPS         = 10  #PI CAMERA: 320 x 240 = MAX 90
 
 
     cap = cv2.VideoCapture(0)
@@ -126,13 +126,13 @@ def loop(serial_port):
     cap.set(4, H_View_size)
     cap.set(5, FPS)
   
-    
-    lower_red = np.array([0, 120, 40])
-    upper_red = np.array([20, 255, 255])
+
+    lower_red = np.array([0, 30, 100])
+    upper_red = np.array([20, 255, 200])
    
 
-    lower_red2 = np.array([160, 120, 40])
-    upper_red2 = np.array([180, 255, 255])
+    lower_red2 = np.array([160, 30, 100])
+    upper_red2 = np.array([180, 255, 200])
     
     lower_black = np.array([0, 0, 0])
     upper_black = np.array([180, 255, 90])
@@ -159,10 +159,13 @@ def loop(serial_port):
     loc = -1
     area_zone = [0,0]
     locStepLeftRight = 0
-    
+    stage = -1
+    step = 0
+    stepCountList = [0,0,0]
+    rectangle_count = 0
+    head_flag = 0
     
     f = open("./data/area.txt","r")
-    
     area = f.readline()
     f.close()
     
@@ -173,17 +176,13 @@ def loop(serial_port):
     print(area)
     print(color)
     
-    stage = -1
-    step = 0
-    stepCountList = [0,0,0]
-    rectangle_count = 0
-    head_flag = 0
+
  
     if area == "dangerous":
         while True:
             _,frame = cap.read()
             
-            if not count_frame():
+            if not count_frame_333():
                 continue
             img_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
             
@@ -195,12 +194,12 @@ def loop(serial_port):
                     mask1 = cv2.inRange(img_hsv, lower_red2, upper_red2)
                     red_mask = mask0 + mask1
                     image_result = cv2.bitwise_and(frame, frame,mask = red_mask)
- 
+                    cv2.imshow('img',image_result)
+                    cv2.waitKey(1)
                     [x, y, w, h] = preprocessing(image_result)
                  
                  
                 elif color == "blue":
-                    
                     blue_mask = cv2.inRange(img_hsv, lower_blue, upper_blue)
                     image_result = cv2.bitwise_and(frame, frame,mask = blue_mask)
                     
@@ -211,7 +210,28 @@ def loop(serial_port):
                 loc = (x + x + w)/2
                 print(loc)
             
-            if stage == 0:
+                                
+            if stage == -1: 
+                TX_data_py2(serial_port, 21)
+                time.sleep(1) 
+                stage = 0
+                locStep = abs(int( (loc-160)/40 ))
+                locStepLeftRight = int( (loc-160)/80)
+                
+                if locStepLeftRight > 0 : 
+                    for i in range(locStepLeftRight):
+                        TX_data_py2(serial_port, 20)
+                        time.sleep(0.5) 
+                 
+                elif locStepLeftRight < 0 : 
+                    for i in range(locStepLeftRight):
+                        TX_data_py2(serial_port, 15)
+                        time.sleep(0.5) 
+                        
+                continue
+                        
+            
+            elif stage == 0:
                 if  loc > 180:
                     TX_data_py2(serial_port, 20)
                     time.sleep(1)
@@ -230,9 +250,9 @@ def loop(serial_port):
                     continue
                     
                 elif loc < 0 :
-                    TX_data_py2(serial_port, 47)
+                    TX_data_py2(serial_port, 11)
                     time.sleep(1)
-                    stepCountList[2] += 1
+                    stepCountList[2] += 4
                    
                     
             elif stage == 1:
@@ -300,16 +320,12 @@ def loop(serial_port):
                 print(dan_count)
                 print("areacount: {}".format(areacount))
                 
-                if dan_count < 15000:
+                stepCountList[2] -= 2
+                
+                if dan_count < 5000:
                     areacount += 1
                     time.sleep(1)
-                '''
-                step_count = (int(1.5*step)) // 2
-                for i in range(step_count+1):
-                    TX_data_py2(serial_port, 51)
-                    time.sleep(1)
-                    
-                '''
+               
                 if areacount >1:
                     TX_data_py2(serial_port, 53)
                     time.sleep(1)
@@ -347,16 +363,14 @@ def loop(serial_port):
                 backStep = stepCountList[2]
                         
                 c = 2
-                
-                  
-                    
-                for i in range(backStep//c):
-                    TX_data_py2(serial_port, 12) 
-                    time.sleep(1)
-                    
-                for i in range(backStep%c):
-                    TX_data_py2(serial_port, 32) 
-                    time.sleep(1)
+                if backStep > 0 :     
+                    for i in range(backStep//c):
+                        TX_data_py2(serial_port, 12) 
+                        time.sleep(1)
+                        
+                    for i in range(backStep%c):
+                        TX_data_py2(serial_port, 32) 
+                        time.sleep(1)
                   
                 
             
@@ -430,8 +444,7 @@ def loop(serial_port):
                     mask1 = cv2.inRange(img_hsv, lower_red2, upper_red2)
                     red_mask = mask0 + mask1
                     image_result = cv2.bitwise_and(frame, frame,mask = red_mask)
-            
-                    
+   
                     [x, y, w, h] = preprocessing(image_result)
                  
              

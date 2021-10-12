@@ -66,7 +66,10 @@ def Receiving(ser):
                     receiving_exit = 0
                     break
 
-
+def set_distance():
+    global distance_count
+    
+    distance_count = 0
             
 def get_distance():
     

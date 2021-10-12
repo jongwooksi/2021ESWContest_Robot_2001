@@ -4,6 +4,7 @@ import cv2
 import serial
 import time
 from serialdata import *
+import subprocess
 
 
 def grayscale(img): 
@@ -77,7 +78,7 @@ def draw_lines(img, lines, color=[0, 0, 255], thickness=3):
             
     return x, y, gradient
 
-
+'''
 def textImageProcessing(img, frame):
 
     img = cv2.Canny(img, 25, 45)
@@ -102,6 +103,8 @@ def textImageProcessing(img, frame):
         
         if area > 7000 :
             cv2.drawContours(frame,[approx],0,(255,0,0),5)
+            cv2.imwrite("m_ewsn.jpg",frame)
+            
             if len(approx) == 4:
                 x, y, w, h = cv2.boundingRect(approx)
               
@@ -109,7 +112,7 @@ def textImageProcessing(img, frame):
                 return [[x, y], [x + w, y], [x, y + h], [x + w, y + h]], frame
               
     return [[-1,-1], [-1,-1], [-1,-1], [-1,-1]], frame
-
+'''
 textFlag = 0
 
 def Recog(template):
@@ -139,9 +142,18 @@ def Recog(template):
         else:
             top_left = max_loc
             match_val = max_val
-        print(match_val)
         
-        if match_val <= 0.85:
+        
+        if method_name == 'cv2.TM_CCOEFF_NORMED':
+            match_val += 0.1
+            
+        if method_name == 'cv2.TM_SQDIFF_NORMED':
+            match_val += 0.08 
+            
+            
+        print(match_val)    
+        
+        if match_val <= 0.80:
             continue
     
         bottom_right = (top_left[0] + tw, top_left[1] + th)
@@ -184,8 +196,8 @@ def textImageProcessing(img, frame):
     img = cv2.morphologyEx(img, cv2.MORPH_CLOSE, kernel)
     img = cv2.erode(img, kernel)
 
-    #cv2.imshow("daa", img)
-    #key = cv2.waitKey(1)
+    cv2.imshow("daa", img)
+    key = cv2.waitKey(1)
 
     contours, _ = cv2.findContours(img, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -193,13 +205,14 @@ def textImageProcessing(img, frame):
 
     for c in contours:
         area = cv2.contourArea(c)
-        approx = cv2.approxPolyDP(c, 0.01 * cv2.arcLength(c, True), True)
+        approx = cv2.approxPolyDP(c, 0.1 * cv2.arcLength(c, True), True)
 
 
         if area > 3000:
             if len(approx) == 4:
                 cv2.drawContours(frame, [approx], 0, (0, 0, 255), 5)
-          
+               
+            
                 left = list(tuple(c[c[:, :, 0].argmin()][0]))
                 top = list(tuple(c[c[:, :, 1].argmin()][0]))
                 right = list(tuple(c[c[:, :, 0].argmax()][0]))
@@ -248,7 +261,7 @@ def textRecogABCD(template):
         if method_name == 'cv2.TM_CCOEFF_NORMED':
             match_val += 0.14
             
-        
+       
         print(match_val)
         if match_val <= 0.85:
             continue
@@ -299,7 +312,7 @@ def RecogABCD(img_color):
     red_hsv = img_hsv.copy()
     blue_hsv = img_hsv.copy()
     
-    
+
     red_count = len(red_hsv[np.where(red_mask != 0)])
     blue_count = len(blue_hsv[np.where(blue_mask != 0)])
     print(red_count)
@@ -309,13 +322,12 @@ def RecogABCD(img_color):
         color = "red"
         red_hsv[np.where(red_mask != 0)] = 0
         red_hsv[np.where(red_mask == 0)] = 255
-        #text = textRecog(red_hsv)
-
+   
     else:
         color = "blue"
         blue_hsv[np.where(blue_mask != 0)] = 0
         blue_hsv[np.where(blue_mask == 0)] = 255
-        #text = textRecog(blue_hsv)
+
 
     
     
@@ -341,6 +353,9 @@ def loop(serial_port):
 
     TX_data_py2(serial_port, 68)
     time.sleep(1)
+    
+    f = open("./data/result.txt","w")
+    f.close()
     
     f = open("./data/start.txt","w")
 
@@ -373,10 +388,6 @@ def loop(serial_port):
         textimage = textimage[8:110, 8:110]
         textimage = cv2.resize(textimage, (128, 128))
       
-        
-        #img_color =  cv2.warpPerspective(frame, matrix, (128, 128))
-        #img_color = img_color[8:110, 8:110]
-        #img_color = cv2.resize(img_color, (54, 54))
 
         text = Recog(textimage)
 
@@ -477,19 +488,19 @@ def loop(serial_port):
         time.sleep(1) 
         
     time.sleep(3)  
-    
     centerFlag = 0
+    
       
     while True:
         _,frame = cap.read()
         if not count_frame_333():
             continue
-        img = cv2.cvtColor(frame[160:], cv2.COLOR_BGR2HSV)
-        
+        img = cv2.cvtColor(frame[200:], cv2.COLOR_BGR2HSV)
+                
         lower_yellow = np.array([10, 100, 100])
         upper_yellow = np.array([50, 255, 255])
         mask = cv2.inRange(img, lower_yellow, upper_yellow)
-        image_result = cv2.bitwise_and(frame[160:], frame[160:],mask = mask)
+        image_result = cv2.bitwise_and(frame[200:], frame[200:],mask = mask)
 
         gray_img = grayscale(image_result)
         blur_img = gaussian_blur(gray_img, 3)
@@ -497,18 +508,17 @@ def loop(serial_port):
         
         
         hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20 )
-        result = weighted_img(hough_img, frame[160:])
+        result = weighted_img(hough_img, frame[200:])
         
-        #cv2.imshow('img', frame[160:])
-        #cv2.waitKey(1)
         
-        if  x == -1: 
-            TX_data_py2(serial_port, 15)
-            time.sleep(1)
-     
+      
         print("x",x)
+        if x < 0 :
+            TX_data_py2(serial_port, 20)
+            time.sleep(1)
+            
         
-        if  x > 170:
+        if  x > 180:
             TX_data_py2(serial_port, 20)
             time.sleep(1)
             
@@ -516,31 +526,30 @@ def loop(serial_port):
             TX_data_py2(serial_port, 15)
             time.sleep(1)
             
-        elif x>=150 and x<=170: # orginal 140 ~ 180
-            centerFlag += 1
-            
-            if gradient>0 and gradient< 3:
+        elif x>=140 and x<=180: # orginal 140 ~ 180
+            print(gradient)
+            if gradient>0 and gradient< 10:
                 TX_data_py2(serial_port, 4)
                 time.sleep(1)
+                centerFlag += 1
                 
             
-            elif gradient<0 and gradient>-3:
+            elif gradient<0 and gradient>-10:
                 TX_data_py2(serial_port, 6) 
                 time.sleep(1) 
-                
-            break 
+                centerFlag += 1
             
-        
-        if centerFlag > 3:
-            break
+            if centerFlag > 1:
+                break 
             
-       
+   
         
     TX_data_py2(serial_port, 43)
     time.sleep(1)
     TX_data_py2(serial_port, 54)
     time.sleep(1)
-     
+    
+    
     left_count = 0
     right_count = 0
     Flag = False
@@ -599,9 +608,7 @@ def loop(serial_port):
                     else:
                         right_count += 1
                     
-                    cv2.drawContours(frame,[approx],0,(0,0,0),5)
                     
-              
         if left_count>right_count and left_count > 3:
             f = open("./data/arrow.txt", 'w')
             print("left")
@@ -630,7 +637,13 @@ def loop(serial_port):
     #time.sleep(1)
     TX_data_py2(serial_port, 11)
     time.sleep(1)
-     
+    
+    set_distance()
+    
+    while get_distance() < 1:
+        TX_data_py2(serial_port, 47)
+        time.sleep(1)
+         
     f = open("./data/arrow.txt", 'r')
     direction = f.readline()
     print(direction)
@@ -670,7 +683,7 @@ def loop(serial_port):
         
         hough_img, x, y, gradient = hough_lines(gray_img, 1, 1 * np.pi/180, 30, 0, 20 )
         #result = weighted_img(hough_img, frame)
-        #cv2.imshow('oimg',hough_img)
+        #cv2.imwrite('m_line.jpg',hough_img)
         #cv2.waitKey(1)
         #print(gradient)
         print(x)
@@ -723,8 +736,11 @@ def loop(serial_port):
     upper = np.array([180, 255, 50])
     
     while True:
-        wait_receiving_exit()
+        #wait_receiving_exit()
         _,frame = cap.read()
+        if not count_frame_333():
+            continue
+        
         hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         safe_mask = cv2.inRange(hsv, lower_green, upper_green)
@@ -733,6 +749,7 @@ def loop(serial_port):
         
         dan_mask = cv2.inRange(hsv, lower, upper)
         
+
         safe_count = len(hsv[np.where(safe_mask != 0)])
         dan_count = len(hsv[np.where(dan_mask != 0)])
         
@@ -774,7 +791,6 @@ def loop(serial_port):
     time.sleep(1)
     
     f = open("./data/area.txt","r")
-    
     area = f.readline()
     f.close()
     
@@ -786,10 +802,13 @@ def loop(serial_port):
     
     f2 = open("./data/result.txt","a")
     f3 = open("./data/color.txt","w")
+    
+    
+    
     head_flag = 0
     while True:
         #wait_receiving_exit()
-        if not count_frame():
+        if not count_frame_333():
             continue
         _,frame = cap.read()
         frame = frame[60:160]
@@ -968,6 +987,6 @@ if __name__ == '__main__':
     
     serial_d.join()
     print("end")
-    
+    #subprocess.run(["python3 milk_mission.py"], shell=True)
 	
     
