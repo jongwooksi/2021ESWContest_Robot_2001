@@ -57,7 +57,7 @@ def finish():
     text = f.readline()
     print(text)
 	
-    for i in range(2):    
+    for i in range(len(text)):    
        
         print(text[i])
         if text[i] == "A":
@@ -555,7 +555,9 @@ def loop(serial_port):
     
     #To the Center-------------------------#  
     centercount = 0
-    
+    TX_data_py2(serial_port, 78)
+    time.sleep(1)
+                   
     while True:
         _,frame = cap.read()
         if not count_frame_333():
@@ -563,8 +565,6 @@ def loop(serial_port):
         
         frameResize = frame[200:,].copy()
         frameResize = cv2.resize(frameResize,(320,240))
-        cv2.imshow('asdasd', frameResize)
-        cv2.waitKey(1)
         img = cv2.cvtColor(frameResize, cv2.COLOR_BGR2HSV)
                 
         mask = cv2.inRange(img, lower_yellow, upper_yellow)
@@ -590,19 +590,19 @@ def loop(serial_port):
             TX_data_py2(serial_port, 20)
             time.sleep(1)
             
-        elif x>10 and x < 155:
+        elif x>10 and x < 145:
             TX_data_py2(serial_port, 15)
             time.sleep(1)
             
-        elif x>=155 and x<=175: # orginal 140 ~ 180
+        elif x>=145 and x<=175: # orginal 140 ~ 180
             print(gradient)
-            if gradient>0 and gradient< 10:
+            if gradient>0 and gradient< 30:
                 TX_data_py2(serial_port, 4)
                 time.sleep(1)
                 
                 
             
-            elif gradient<0 and gradient>-10:
+            elif gradient<0 and gradient>-30:
                 TX_data_py2(serial_port, 6) 
                 time.sleep(1) 
                 
@@ -610,7 +610,7 @@ def loop(serial_port):
                 centerFlag += 1
             
             
-            if centerFlag > 2: break 
+            if centerFlag > 3: break 
             
    
         
@@ -637,7 +637,7 @@ def loop(serial_port):
         mask = cv2.inRange(hsv, lower_blackArrow, upper_blackArrow)
         kernel = np.ones((5,5), np.uint8)
         mask = cv2.erode(mask, kernel)
-
+        
         contours,_ = cv2.findContours(mask , cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
         for cnt in contours:
@@ -645,7 +645,7 @@ def loop(serial_port):
             approx = cv2.approxPolyDP(cnt, 0.01*cv2.arcLength(cnt,True),True)
           
             
-            if area > 2000 and area < 320*180:
+            if area > 1500 and area < 320*180:
                 
                 if Flag is False:
                     left = list(tuple(cnt[cnt[:, :, 0].argmin()][0]))
@@ -703,7 +703,8 @@ def loop(serial_port):
             break
 
 
-   
+    TX_data_py2(serial_port, 77)
+    time.sleep(1)
     TX_data_py2(serial_port, 11)
     time.sleep(1)
     #TX_data_py2(serial_port, 11)
@@ -798,7 +799,7 @@ def loop(serial_port):
                         TX_data_py2(serial_port, 58)
                         time.sleep(1.5)
                     
-                    for i in range(4):
+                    for i in range(5):
                         TX_data_py2(serial_port, 7)
                         time.sleep(1)
              
@@ -840,9 +841,9 @@ def loop(serial_port):
             
             print("safe_count {}".format(safe_count))
             print("dan_count {}".format(dan_count))
-            if safe_count > 10000 and dan_count < 1000:
+            if safe_count > 5500 and dan_count < 1000:
                zoneSafe += 1
-            elif dan_count > 10000 and safe_count < 1000: 
+            elif dan_count > 5500 and safe_count < 1000: 
                zoneDanger += 1    
             if zoneSafe > 2: # original safe_count = 15000 , dan_count = 30
                print("safe_zone")
@@ -994,7 +995,7 @@ def loop(serial_port):
             if text == "A":
                 f3.write(color)
                 if area == "dangerous":
-                    f2.write(text)
+                    resultFile.write(text)
                     
                     
                 if direction == "right":
@@ -1008,7 +1009,7 @@ def loop(serial_port):
             elif text == "B":
                 f3.write(color)
                 if area == "dangerous":
-                    f2.write(text)
+                    resultFile.write(text)
                     
                     
                 if direction == "right":
@@ -1022,7 +1023,7 @@ def loop(serial_port):
             elif text == "C":
                 f3.write(color)
                 if area == "dangerous":
-                    f2.write(text)
+                    resultFile.write(text)
                     
                     
                 if direction == "right":
@@ -1036,7 +1037,7 @@ def loop(serial_port):
             elif text == "D":
                 f3.write(color)
                 if area == "dangerous":
-                    f2.write(text)
+                    resultFile.write(text)
                     
                     
                 if direction == "right":
@@ -1168,10 +1169,10 @@ def loop(serial_port):
                         stage = 2
                         
                         
-                    if color == "red" and y + h > 215:
+                    if color == "red" and y + h > 220:
                         flagcounter += 1
            
-                    elif color == "blue" and y + h > 215:
+                    elif color == "blue" and y + h > 220:
                         flagcounter += 1
            
                         
@@ -1197,6 +1198,7 @@ def loop(serial_port):
                             stepCountList[2] += 1
                     
                 elif stage == 2:
+        
                     if  loc > 170:
                         TX_data_py2(serial_port, 20) #Right
                         time.sleep(1)
@@ -1264,7 +1266,7 @@ def loop(serial_port):
                    
                     backStep = stepCountList[2]
                             
-                    c = 3
+                    c = 4
                     if backStep > 0 :     
                         for i in range(backStep//c):
                             TX_data_py2(serial_port, 12) 
@@ -1308,22 +1310,34 @@ def loop(serial_port):
                     hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20 )
                     result = weighted_img(hough_img, frame[:160])
                     
-                    
+                
                     if  x == -1: 
-                        TX_data_py2(serial_port, 15)
-                        time.sleep(1)
-                 
+                        if direction == "right":
+                            TX_data_py2(serial_port, 20)
+                            time.sleep(1)
+                        elif direction == "left":
+                            TX_data_py2(serial_port, 15)
+                            time.sleep(1)
+                            
+                    if  gradient > -0.5 and gradient < 0.5: 
+                        if direction == "right":
+                            TX_data_py2(serial_port, 15)
+                            time.sleep(1)
+                        elif direction == "left":
+                            TX_data_py2(serial_port, 20)
+                            time.sleep(1)
+                               
                     print("x",x)
                     
-                    if  x > 170:
+                    if  x > 180:
                         TX_data_py2(serial_port, 20)
                         time.sleep(1)
                         
-                    elif x>10 and x < 150:
+                    elif x>10 and x < 140:
                         TX_data_py2(serial_port, 15)
                         time.sleep(1)
                         
-                    elif x>=150 and x<=170: # orginal 140 ~ 180
+                    elif x>=140 and x<=180: # orginal 140 ~ 180
                         print(gradient)
                         if gradient>0 and gradient< 10:
                             TX_data_py2(serial_port, 4)
@@ -1335,6 +1349,9 @@ def loop(serial_port):
                             time.sleep(1) 
                         
                         else:
+                            TX_data_py2(serial_port, 78)
+                            time.sleep(1)
+                            
                             break 
         
         
@@ -1463,10 +1480,10 @@ def loop(serial_port):
                     if flagcounter == 1:
                         stage = 2
                         
-                    if color == "red" and y + h > 215:
+                    if color == "red" and y + h > 220:
                         flagcounter += 1
            
-                    elif color == "blue" and y + h > 215:
+                    elif color == "blue" and y + h > 220:
                         flagcounter += 1
                     else :
                         if  loc > 180:
@@ -1633,6 +1650,7 @@ def loop(serial_port):
                             time.sleep(1)
                             TX_data_py2(serial_port, 9)
                             time.sleep(1)
+                            
                     if direction == "left":
                         if safeloc == "left":
                             TX_data_py2(serial_port, 48)
@@ -1673,20 +1691,32 @@ def loop(serial_port):
                     
                     
                     if  x == -1: 
-                        TX_data_py2(serial_port, 15)
-                        time.sleep(1)
-                 
+                        if direction == "right":
+                            TX_data_py2(serial_port, 20)
+                            time.sleep(1)
+                        elif direction == "left":
+                            TX_data_py2(serial_port, 15)
+                            time.sleep(1)
+                            
+                    if  gradient > -0.5 and gradient < 0.5: 
+                        if direction == "right":
+                            TX_data_py2(serial_port, 15)
+                            time.sleep(1)
+                        elif direction == "left":
+                            TX_data_py2(serial_port, 20)
+                            time.sleep(1)
+                               
                     print("x",x)
                     
-                    if  x > 170:
+                    if  x > 180:
                         TX_data_py2(serial_port, 20)
                         time.sleep(1)
                         
-                    elif x>10 and x < 150:
+                    elif x>10 and x < 140:
                         TX_data_py2(serial_port, 15)
                         time.sleep(1)
                         
-                    elif x>=150 and x<=170: # orginal 140 ~ 180
+                    elif x>=140 and x<=180: # orginal 140 ~ 180
                         print(gradient)
                         if gradient>0 and gradient< 10:
                             TX_data_py2(serial_port, 4)
@@ -1697,18 +1727,73 @@ def loop(serial_port):
                             TX_data_py2(serial_port, 6) 
                             time.sleep(1) 
                         
+                        
                         else:
+                            TX_data_py2(serial_port, 78)
+                            time.sleep(1)
+                           
+                            
                             break 
        
         
         time.sleep(1)
         
+    resultFile.close()
+    
+    f = open("./data/arrow.txt", 'r')
+    arrow = f.readline()
+    
+    for i in range(4):
+        if arrow == 'left':
+            TX_data_py2(serial_port,58)
+            time.sleep(1)
+        elif arrow == 'right':
+            TX_data_py2(serial_port, 59)
+            time.sleep(1)
+    
+    while True:
+        #wait_receiving_exit()
+        if not count_frame_1():
+            continue
+        _,frame = cap.read()
+        img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
+        
+        #lower_black = np.array([0, 0, 0])
+        #upper_black = np.array([180, 255, 50])
+        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        black_mask = cv2.inRange(hsv, lower_blackArrow, upper_blackArrow)
+        black_count = len(hsv[np.where(black_mask != 0)])
+        print("black count", black_count)
+       
+         
+        
+        if arrow == 'left':
+            TX_data_py2(serial_port, 58) 
+            time.sleep(1)
+            if black_count >= 4000:
+                TX_data_py2(serial_port, 56)
+                time.sleep(1)
+                finish()
+                break
+            
+        elif arrow == 'right':
+            TX_data_py2(serial_port, 59) 
+            time.sleep(1)
+            if black_count >= 4000:
+                TX_data_py2(serial_port, 55) 
+                time.sleep(1)
+                finish() 
+                break
+        
+        
+        time.sleep(1) 
+            
     cap.release()
     cv2.destroyAllWindows()
     
     time.sleep(1)
-    resultFile.close()
+   
     
 
     exit(1)
@@ -1739,5 +1824,5 @@ if __name__ == '__main__':
     print("end")
     
     serial_port.flush() # serial cls
-    subprocess.run(["python3 exit.py"], shell=True)
+    #subprocess.run(["python3 exit.py"], shell=True)
    
