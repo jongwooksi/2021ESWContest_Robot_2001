@@ -23,10 +23,10 @@ lower_blackdanger = np.array([0, 0, 0])
 upper_blackdanger = np.array([180, 255, 50])            
             
 #milk mission            
-lower_red_milk = np.array([0, 30, 100])
-upper_red_milk = np.array([20, 255, 180])
-lower_red2_milk = np.array([160, 30, 100])
-upper_red2_milk = np.array([180, 255, 180])
+lower_red_milk = np.array([0, 30, 60])
+upper_red_milk = np.array([20, 255, 150])
+lower_red2_milk = np.array([160, 30, 60])
+upper_red2_milk = np.array([180, 255, 150])
 lower_black_milk = np.array([0, 0, 0])
 upper_black_milk = np.array([180, 255, 90])
 lower_blue_milk = np.array([90, 80, 30])
@@ -132,7 +132,7 @@ def draw_lines(img, lines, color=[0, 0, 255], thickness=3):
         
     cv2.line(img, (point[0], point[1]), (point[2], point[3]), color, thickness)
             
-    return x, y, gradient
+    return x, maxvalue, gradient
 
 
 textFlag = 0
@@ -637,6 +637,8 @@ def loop(serial_port):
         mask = cv2.inRange(hsv, lower_blackArrow, upper_blackArrow)
         kernel = np.ones((5,5), np.uint8)
         mask = cv2.erode(mask, kernel)
+        #cv2.imshow('uuu', mask)
+        #cv2.waitKey(1)
         
         contours,_ = cv2.findContours(mask , cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
 
@@ -645,7 +647,7 @@ def loop(serial_port):
             approx = cv2.approxPolyDP(cnt, 0.01*cv2.arcLength(cnt,True),True)
           
             
-            if area > 1500 and area < 320*180:
+            if area > 800 and area < 320*180:
                 
                 if Flag is False:
                     left = list(tuple(cnt[cnt[:, :, 0].argmin()][0]))
@@ -703,8 +705,8 @@ def loop(serial_port):
             break
 
 
-    TX_data_py2(serial_port, 77)
-    time.sleep(1)
+    #TX_data_py2(serial_port, 77)
+    #time.sleep(1)
     TX_data_py2(serial_port, 11)
     time.sleep(1)
     #TX_data_py2(serial_port, 11)
@@ -738,7 +740,7 @@ def loop(serial_port):
         moveCnt = 0
         
         if m == 0: moveCnt = 6
-        else: moveCnt = 12
+        else: moveCnt = 13
             
         for i in range(moveCnt):
             if direction == 'left':
@@ -1083,9 +1085,10 @@ def loop(serial_port):
         print(area)
         print(color)
         
-
+        
      
         if area == "dangerous":
+           
             while True:
                 _,frame = cap.read()
                 
@@ -1134,7 +1137,9 @@ def loop(serial_port):
                         for i in range(locStepLeftRight):
                             TX_data_py2(serial_port, 15)
                             time.sleep(0.5) 
-                            
+                    TX_data_py2(serial_port, 11)
+                    time.sleep(1)
+                    stepCountList[2] += 4         
                     continue
                             
                 
@@ -1228,7 +1233,7 @@ def loop(serial_port):
                     print(dan_count)
                     print("areacount: {}".format(areacount))
                     
-                    stepCountList[2] -= 2
+                    stepCountList[2] -= 4
                     
                     if dan_count < 5000:
                         areacount += 1
@@ -1297,10 +1302,10 @@ def loop(serial_port):
                     
                 elif stage == 6:   
                    
-                    img = cv2.cvtColor(frame[:160], cv2.COLOR_BGR2HSV)
+                    img = cv2.cvtColor(frame[40:200,:], cv2.COLOR_BGR2HSV)
                     
                     mask = cv2.inRange(img, lower_yellow, upper_yellow)
-                    image_result = cv2.bitwise_and(frame[:160], frame[:160],mask = mask)
+                    image_result = cv2.bitwise_and(frame[40:200,:], frame[40:200,:],mask = mask)
 
                     gray_img = grayscale(image_result)
                     blur_img = gaussian_blur(gray_img, 3)
@@ -1308,26 +1313,31 @@ def loop(serial_port):
                     
                     
                     hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20 )
-                    result = weighted_img(hough_img, frame[:160])
+                    result = weighted_img(hough_img, frame[40:200,:])
                     
-                
+                    cv2.imshow("gggg", frame[40:200,:])
+                    cv2.waitKey(1)
+                    
                     if  x == -1: 
                         if direction == "right":
-                            TX_data_py2(serial_port, 20)
-                            time.sleep(1)
-                        elif direction == "left":
                             TX_data_py2(serial_port, 15)
                             time.sleep(1)
+                        elif direction == "left":
+                            TX_data_py2(serial_port, 20)
+                            time.sleep(1)
                             
-                    if  gradient > -0.5 and gradient < 0.5: 
+                    elif  gradient > -0.5 and gradient < 0.5:
                         if direction == "right":
                             TX_data_py2(serial_port, 15)
                             time.sleep(1)
                         elif direction == "left":
                             TX_data_py2(serial_port, 20)
                             time.sleep(1)
+
+                        
                                
                     print("x",x)
+                    print("y",y)
                     
                     if  x > 180:
                         TX_data_py2(serial_port, 20)
@@ -1365,7 +1375,7 @@ def loop(serial_port):
                 
                 zoneDirect = 0
                 
-                if stage == -1 : zoneDirect = 120
+                if stage == -1 : zoneDirect = 80
                 
                 img_hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
                 cv2.imshow('asd', img_hsv[zoneDirect:])
@@ -1437,12 +1447,12 @@ def loop(serial_port):
                             #elif ((loc-160)/40) < -3:
                             #    head_flag = 4
                             
-                            if  x < 100:
+                            if  x < 140:
                                 head_flag = 2
                                 for i in range(2):
                                     TX_data_py2(serial_port, 7)
                                     time.sleep(1) 
-                            elif x > 200 :
+                            elif x > 180 :
                                 head_flag = 4
                                 for i in range(2):
                                     TX_data_py2(serial_port, 9)
@@ -1634,7 +1644,7 @@ def loop(serial_port):
                         if safeloc == "right":
                             TX_data_py2(serial_port, 49)
                             time.sleep(1)
-                            TX_data_py2(serial_port, 49)
+                            TX_data_py2(serial_port, 9)
                             time.sleep(1)
                 
 
@@ -1646,18 +1656,16 @@ def loop(serial_port):
                         else :
                             TX_data_py2(serial_port, 49)
                             time.sleep(1)
-                            TX_data_py2(serial_port, 9)
-                            time.sleep(1)
-                            TX_data_py2(serial_port, 9)
-                            time.sleep(1)
+                            
+                          
                             
                     if direction == "left":
                         if safeloc == "left":
                             TX_data_py2(serial_port, 48)
                             time.sleep(1)
-                            TX_data_py2(serial_port, 48)
+                            TX_data_py2(serial_port, 7)
                             time.sleep(1)
-                
+                            
 
                         elif safeloc == "right":
                             TX_data_py2(serial_port, 48)
@@ -1667,19 +1675,17 @@ def loop(serial_port):
                         else :
                             TX_data_py2(serial_port, 48)
                             time.sleep(1)
-                            TX_data_py2(serial_port, 7)
-                            time.sleep(1)
-                            TX_data_py2(serial_port, 7)
-                            time.sleep(1)    
+                          
+                           
                     stage = 6
                     
                 elif stage == 6:   
                    
-                    img = cv2.cvtColor(frame[:160], cv2.COLOR_BGR2HSV)
+                    img = cv2.cvtColor(frame[40:200,:], cv2.COLOR_BGR2HSV)
                     
                   
                     mask = cv2.inRange(img, lower_yellow, upper_yellow)
-                    image_result = cv2.bitwise_and(frame[:160], frame[:160],mask = mask)
+                    image_result = cv2.bitwise_and(frame[40:200,:], frame[40:200,:],mask = mask)
 
                     gray_img = grayscale(image_result)
                     blur_img = gaussian_blur(gray_img, 3)
@@ -1687,26 +1693,29 @@ def loop(serial_port):
                     
                     
                     hough_img, x, y, gradient = hough_lines(canny_img, 1, 1 * np.pi/180, 30, 0, 20 )
-                    result = weighted_img(hough_img, frame[:160])
+                    result = weighted_img(hough_img, frame[40:200,:])
+                    cv2.imshow("gggg", frame[40:200,:])
+                    cv2.waitKey(1)
                     
+                    print("x, y",x, y)
                     
                     if  x == -1: 
                         if direction == "right":
-                            TX_data_py2(serial_port, 20)
-                            time.sleep(1)
-                        elif direction == "left":
                             TX_data_py2(serial_port, 15)
                             time.sleep(1)
+                        elif direction == "left":
+                            TX_data_py2(serial_port, 20)
+                            time.sleep(1)
                             
-                    if  gradient > -0.5 and gradient < 0.5: 
+                    elif  gradient > -0.5 and gradient < 0.5: 
                         if direction == "right":
                             TX_data_py2(serial_port, 15)
                             time.sleep(1)
                         elif direction == "left":
                             TX_data_py2(serial_port, 20)
                             time.sleep(1)
-                               
-                    print("x",x)
+                        
+
                     
                     if  x > 180:
                         TX_data_py2(serial_port, 20)
@@ -1756,35 +1765,35 @@ def loop(serial_port):
         if not count_frame_1():
             continue
         _,frame = cap.read()
-        img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        #img = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
         
         
         #lower_black = np.array([0, 0, 0])
         #upper_black = np.array([180, 255, 50])
-        hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
-        black_mask = cv2.inRange(hsv, lower_blackArrow, upper_blackArrow)
-        black_count = len(hsv[np.where(black_mask != 0)])
-        print("black count", black_count)
+        #hsv = cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        #black_mask = cv2.inRange(hsv, lower_blackArrow, upper_blackArrow)
+        #black_count = len(hsv[np.where(black_mask != 0)])
+        #print("black count", black_count)
        
          
         
         if arrow == 'left':
-            TX_data_py2(serial_port, 58) 
-            time.sleep(1)
-            if black_count >= 4000:
-                TX_data_py2(serial_port, 56)
+            for i in range(5):
+                TX_data_py2(serial_port, 58) 
                 time.sleep(1)
-                finish()
-                break
+            TX_data_py2(serial_port, 56)
+            time.sleep(1)
+            finish()
+            break
             
         elif arrow == 'right':
-            TX_data_py2(serial_port, 59) 
-            time.sleep(1)
-            if black_count >= 4000:
-                TX_data_py2(serial_port, 55) 
+            for i in range(5):
+                TX_data_py2(serial_port, 59) 
                 time.sleep(1)
-                finish() 
-                break
+            TX_data_py2(serial_port, 55)
+            time.sleep(1)
+            finish()
+            break
         
         
         time.sleep(1) 
