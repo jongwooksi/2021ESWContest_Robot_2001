@@ -109,6 +109,19 @@ def count_frame_333():
         count = 0
         #print("count",count)
         return True
+
+def count_frame_5():
+    global count
+    
+    if count < 5:
+        count += 1
+        #print("count",count)
+        return False
+    if count == 5:
+        count = 0
+        #print("count",count)
+        return True
+        
         
 def count_frame_1():
     global count
